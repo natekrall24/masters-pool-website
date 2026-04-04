@@ -17,6 +17,9 @@
     ></iframe>
     {% else %}
     <p class="placeholder-text">The leaderboard will be available once the Masters begins. Check back April 9th!</p>
+    <div class="page-image-container">
+        <img src="{{ url_for('static', filename='Golf swing on a lush course.png') }}" alt="Golf swing on a lush course" class="page-image">
+    </div>
     {% endif %}
 </div>
 {% endblock %}
