@@ -58,7 +58,7 @@ Good luck!
 """
 
         message = Mail(
-            from_email="slotmasterspool@gmail.com",
+            from_email="noreply@slotmasterspool.com",
             to_emails=email,
             subject="You're in! Your 2026 Slot Masters Pool Team",
             plain_text_content=body,
