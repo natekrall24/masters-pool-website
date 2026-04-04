@@ -53,6 +53,8 @@ Reminders:
   • Submission deadline: Wednesday, April 8th at 11:59 PM
   • The leaderboard goes live at slotmasterspool.com on April 9th
 
+Feel free to share the pool with your friends — the more the merrier!
+
 Good luck!
 — Slot Masters Pool
 """
