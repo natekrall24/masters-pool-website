@@ -112,40 +112,54 @@
             </table>
         </div>
 
-        <!-- Team Summary Sidebar -->
+        <!-- Team Summary Sidebar / Mobile Drawer -->
         <div class="team-summary" id="team-summary">
             <h3>Your Team</h3>
-            <ul class="roster-slots" id="roster-slots">
-                <li class="roster-slot empty" id="slot-0">— Empty —</li>
-                <li class="roster-slot empty" id="slot-1">— Empty —</li>
-                <li class="roster-slot empty" id="slot-2">— Empty —</li>
-                <li class="roster-slot empty" id="slot-3">— Empty —</li>
-                <li class="roster-slot empty" id="slot-4">— Empty —</li>
-                <li class="roster-slot empty" id="slot-5">— Empty —</li>
-            </ul>
-            <div class="salary-display">
-                <span>Total: <strong id="total-salary">$0</strong></span>
-                <span>Remaining: <strong id="remaining-salary">$50,000</strong></span>
+
+            <!-- Mobile-only handle bar -->
+            <div class="mobile-drawer-handle" id="drawer-handle">
+                <div class="handle-left">
+                    Your Team
+                    <span class="handle-count" id="handle-count">0/6</span>
+                    <span class="handle-budget" id="handle-budget">$50,000 left</span>
+                </div>
+                <span class="handle-arrow">▲</span>
             </div>
 
-            <hr>
+            <!-- Drawer content (always visible on desktop, hidden on mobile until expanded) -->
+            <div class="drawer-content" id="drawer-content">
+                <ul class="roster-slots" id="roster-slots">
+                    <li class="roster-slot empty" id="slot-0">— Empty —</li>
+                    <li class="roster-slot empty" id="slot-1">— Empty —</li>
+                    <li class="roster-slot empty" id="slot-2">— Empty —</li>
+                    <li class="roster-slot empty" id="slot-3">— Empty —</li>
+                    <li class="roster-slot empty" id="slot-4">— Empty —</li>
+                    <li class="roster-slot empty" id="slot-5">— Empty —</li>
+                </ul>
+                <div class="salary-display">
+                    <span>Total: <strong id="total-salary">$0</strong></span>
+                    <span>Remaining: <strong id="remaining-salary">$50,000</strong></span>
+                </div>
 
-            <div class="submission-fields">
-                <label for="name">Your Name</label>
-                <input type="text" id="name" name="name" placeholder="Full name" value="{{ form_name | default('') }}">
+                <hr>
 
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="you@example.com" value="{{ form_email | default('') }}">
+                <div class="submission-fields">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" placeholder="Full name" value="{{ form_name | default('') }}">
 
-                <label class="venmo-label">
-                    <input type="checkbox" name="venmo_confirmed" id="venmo-checkbox">I have sent $25 to <strong>@SammyMarks21</strong> on Venmo
-                </label>
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="you@example.com" value="{{ form_email | default('') }}">
+
+                    <label class="venmo-label">
+                        <input type="checkbox" name="venmo_confirmed" id="venmo-checkbox">I have sent $25 to <strong>@SammyMarks21</strong> on Venmo
+                    </label>
+                </div>
+
+                <button type="submit" id="submit-btn" class="submit-btn" disabled>
+                    Submit My Team
+                </button>
+                <p class="submit-hint" id="submit-hint">Select 6 players to continue</p>
             </div>
-
-            <button type="submit" id="submit-btn" class="submit-btn" disabled>
-                Submit My Team
-            </button>
-            <p class="submit-hint" id="submit-hint">Select 6 players to continue</p>
         </div>
 
     </div>

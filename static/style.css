@@ -371,6 +371,14 @@ a:hover {
    TEAM SUMMARY SIDEBAR
 ============================================================ */
 
+.mobile-drawer-handle {
+    display: none;
+}
+
+.drawer-content {
+    display: block;
+}
+
 .team-summary {
     position: sticky;
     top: 80px;
@@ -720,29 +728,124 @@ a:hover {
 ============================================================ */
 
 @media (max-width: 768px) {
+    /* Header — keep title on one line */
+    .header-inner {
+        height: auto;
+        padding: 0.6rem 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+    }
+
+    .site-title {
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    .site-nav {
+        gap: 1.25rem;
+    }
+
+    .site-nav a {
+        font-size: 0.8rem;
+    }
+
+    /* Builder layout stacks vertically */
     .builder-layout {
         grid-template-columns: 1fr;
     }
 
+    /* Team summary: mini tab at bottom, expands on tap */
     .team-summary {
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
         top: auto;
-        border-radius: 0;
+        border-radius: 12px 12px 0 0;
         border-top: 3px solid #006747;
         border-left: none;
         border-right: none;
         border-bottom: none;
-        box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
-        max-height: 60vh;
-        overflow-y: auto;
+        box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
         z-index: 200;
+        padding: 0;
+        max-height: 80vh;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
     }
 
+    /* The always-visible handle bar */
+    .mobile-drawer-handle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        background: #fff;
+        user-select: none;
+    }
+
+    .mobile-drawer-handle .handle-left {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #006747;
+    }
+
+    .mobile-drawer-handle .handle-count {
+        background: #006747;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 99px;
+        padding: 0.15rem 0.5rem;
+    }
+
+    .mobile-drawer-handle .handle-budget {
+        font-size: 0.82rem;
+        color: #555;
+        font-weight: 400;
+    }
+
+    .mobile-drawer-handle .handle-arrow {
+        font-size: 0.65rem;
+        color: #006747;
+        transition: transform 0.3s ease;
+    }
+
+    .team-summary.expanded .handle-arrow {
+        transform: rotate(180deg);
+    }
+
+    /* The expandable content */
+    .drawer-content {
+        display: none;
+        padding: 0 1rem 1rem;
+        overflow-y: auto;
+        max-height: calc(80vh - 48px);
+    }
+
+    .team-summary.expanded .drawer-content {
+        display: block;
+    }
+
+    /* Hide the h3 inside drawer on mobile since handle replaces it */
+    .team-summary > h3 {
+        display: none;
+    }
+
+    .salary-display {
+        flex-direction: row;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Give enough padding so drawer tab doesn't cover player list */
     .site-main {
-        padding-bottom: 400px;
+        padding-bottom: 70px;
     }
 
     .rules-content {
@@ -750,10 +853,10 @@ a:hover {
     }
 
     .page-hero h2 {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
     }
 
-    .site-title {
-        font-size: 1.1rem;
+    .page-hero p {
+        font-size: 0.9rem;
     }
 }

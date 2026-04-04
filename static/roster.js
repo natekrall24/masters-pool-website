@@ -61,6 +61,7 @@ function updateSummary() {
         }
     });
 
+    updateHandleBar(count, totalSalary);
     updateSubmitButton(count, totalSalary);
 }
 
@@ -102,6 +103,29 @@ searchInput.addEventListener("input", () => {
         row.style.display = name.includes(query) ? "" : "none";
     });
 });
+
+// Mobile drawer
+const teamSummary = document.getElementById("team-summary");
+const drawerHandle = document.getElementById("drawer-handle");
+const handleCount = document.getElementById("handle-count");
+const handleBudget = document.getElementById("handle-budget");
+
+drawerHandle.addEventListener("click", () => {
+    teamSummary.classList.toggle("expanded");
+});
+
+function updateHandleBar(count, totalSalary) {
+    if (!handleCount) return;
+    const remaining = SALARY_CAP - totalSalary;
+    handleCount.textContent = `${count}/6`;
+    handleBudget.textContent = `${formatSalary(remaining)} left`;
+    handleBudget.style.color = remaining < 0 ? "#c0392b" : "";
+
+    // Auto-expand when 6 players are selected
+    if (count === MAX_PICKS && !teamSummary.classList.contains("expanded")) {
+        teamSummary.classList.add("expanded");
+    }
+}
 
 // Initialize on page load (handles pre-filled state if form errored)
 updateSummary();
