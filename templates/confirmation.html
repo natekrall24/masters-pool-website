@@ -4,7 +4,11 @@
 {% block content %}
 <div class="page-hero confirmation-hero">
     <h2>You're In!</h2>
-    <p>Your team has been submitted, {{ name }}. Good luck!</p>
+    {% if from_cookie %}
+    <p>Welcome back, {{ name }}. Here's your submitted team.</p>
+    {% else %}
+    <p>Your team has been submitted, {{ name }}. A confirmation email is on its way!</p>
+    {% endif %}
 </div>
 
 <div class="confirmation-card">
@@ -25,7 +29,7 @@
         <h4>Reminders</h4>
         <ul>
             <li>Make sure you've sent $25 to <strong>@SammyMarks21</strong> on Venmo</li>
-            <li>The deadline is Wednesday, April 9th at 11:59 PM</li>
+            <li>The deadline is Wednesday, April 8th at 11:59 PM</li>
             <li>Come back to this site once the tournament starts to follow the live leaderboard</li>
         </ul>
     </div>
