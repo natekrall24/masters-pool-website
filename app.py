@@ -1,8 +1,26 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from config import SITE_MODE, PLAYERS, GOOGLE_SHEET_ID, LEADERBOARD_EMBED_URL
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
+
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+
+def get_sheet():
+    creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
+    if creds_json:
+        import json
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+    else:
+        creds = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
+    client = gspread.authorize(creds)
+    spreadsheet = client.open_by_key(GOOGLE_SHEET_ID)
+    return spreadsheet.worksheet("Website Responses")
 
 
 @app.route("/")
@@ -55,7 +73,24 @@ def submit():
             selected_names=selected,
         )
 
-    # TODO: Write to Google Sheet (next step)
+    # Write to Google Sheet
+    try:
+        sheet = get_sheet()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row = [timestamp, name, email] + selected + [total_salary, "Yes"]
+        sheet.append_row(row)
+    except Exception as e:
+        import traceback
+        app.logger.error(f"Failed to write to Google Sheet: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+        return render_template(
+            "roster_builder.html",
+            players=PLAYERS,
+            salary_cap=50000,
+            errors=["There was a problem submitting your team. Please try again or contact sammymarks03@gmail.com."],
+            form_name=name,
+            form_email=email,
+            selected_names=selected,
+        )
 
     return redirect(url_for(
         "confirmation",
@@ -94,6 +129,11 @@ def confirmation():
         total=total,
         players=selected_players,
     )
+
+
+@app.route("/leaderboard")
+def leaderboard():
+    return render_template("leaderboard.html", embed_url=LEADERBOARD_EMBED_URL)
 
 
 @app.route("/lineups")

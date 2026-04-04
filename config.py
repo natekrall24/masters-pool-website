@@ -5,7 +5,7 @@ import os
 SITE_MODE = os.environ.get("SITE_MODE", "pre-tournament")
 
 # Google Sheet ID (fill in after creating the sheet)
-GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID", "")
+GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID", "147wIFWr0bmi4bg5s7kC8Zvn38BVJ6Oh9LQUWIiX2NSY")
 
 # Google Sheet leaderboard embed URL (fill in after publishing the sheet)
 LEADERBOARD_EMBED_URL = os.environ.get("LEADERBOARD_EMBED_URL", "")

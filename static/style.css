@@ -709,9 +709,10 @@ a:hover {
 
 .placeholder-text {
     text-align: center;
-    color: #999;
-    font-style: italic;
-    padding: 3rem 0;
+    color: #555;
+    font-size: 1.05rem;
+    padding: 4rem 1rem;
+    width: 100%;
 }
 
 /* ============================================================
