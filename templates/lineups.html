@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}All Lineups — 2026 Slot Masters Pool{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <h2>All Submitted Lineups</h2>
+    <p>{{ entries | length }} entr{{ 'y' if entries | length == 1 else 'ies' }} submitted so far.</p>
+</div>
+
+<div class="lineups-grid">
+    {% if entries %}
+        {% for entry in entries %}
+        <div class="lineup-card">
+            <div class="lineup-header">
+                <span class="lineup-name">{{ entry.name }}</span>
+                <span class="lineup-total">${{ "{:,}".format(entry.total_salary) }}</span>
+            </div>
+            <ul class="lineup-players">
+                {% for player in entry.players %}
+                <li>
+                    <span class="lp-name">{{ player.name }}</span>
+                    <span class="lp-salary">${{ "{:,}".format(player.salary) }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="placeholder-text">Lineups will be available when all teams are submitted. No cheating!</p>
+    {% endif %}
+</div>
+{% endblock %}

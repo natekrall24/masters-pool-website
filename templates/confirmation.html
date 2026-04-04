@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}You're In! — 2026 Slot Masters Pool{% endblock %}
+
+{% block content %}
+<div class="page-hero confirmation-hero">
+    <h2>You're In!</h2>
+    <p>Your team has been submitted, {{ name }}. Good luck!</p>
+</div>
+
+<div class="confirmation-card">
+    <h3>Your Submitted Team</h3>
+    <ul class="confirmation-roster">
+        {% for player in players %}
+        <li>
+            <span class="cr-name">{{ player.name }}</span>
+            <span class="cr-salary">${{ "{:,}".format(player.salary) }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    <div class="confirmation-total">
+        Total Cost: <strong>${{ "{:,}".format(total) }}</strong>
+    </div>
+
+    <div class="confirmation-reminders">
+        <h4>Reminders</h4>
+        <ul>
+            <li>Make sure you've sent $25 to <strong>@SammyMarks21</strong> on Venmo</li>
+            <li>The deadline is Wednesday, April 9th at 11:59 PM</li>
+            <li>Come back to this site once the tournament starts to follow the live leaderboard</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

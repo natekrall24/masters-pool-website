@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Enter Your Team — 2026 Slot Masters Pool{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <h2>Build Your Team</h2>
+    <p>Pick 6 players. Stay under $50,000. Submit before Wednesday, April 8th at 11:59 PM.</p>
+</div>
+
+{% if errors %}
+<div class="error-banner">
+    <ul>
+        {% for error in errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Rules Section -->
+<details class="rules-section">
+    <summary>How To Play &amp; Rules</summary>
+    <div class="rules-content">
+
+        <div class="rules-block">
+            <h3>How To Play</h3>
+            <ol>
+                <li>Select SIX players with costs that add up to $50,000 or less</li>
+                <li>Venmo $25 to <strong>@SammyMarks21</strong> before submitting</li>
+                <li>Submit by <strong>Wednesday, April 8th at 11:59 PM</strong></li>
+            </ol>
+        </div>
+
+        <div class="rules-block">
+            <h3>Scoring</h3>
+            <ul>
+                <li>Your score is the sum of your players' strokes</li>
+                <li>Lowest total score wins</li>
+                <li>Missed cut = +5 strokes for each of rounds 3 and 4</li>
+            </ul>
+        </div>
+
+        <div class="rules-block">
+            <h3>Overall Payouts</h3>
+            <ul class="payout-list">
+                <li><span>1st Place</span><span>25%</span></li>
+                <li><span>2nd Place</span><span>15%</span></li>
+                <li><span>3rd Place</span><span>9%</span></li>
+                <li><span>4th Place</span><span>5%</span></li>
+                <li><span>5th Place</span><span>4%</span></li>
+                <li><span>Last Place</span><span>4%</span></li>
+            </ul>
+        </div>
+
+        <div class="rules-block">
+            <h3>Round Payouts <span class="rules-subhead">(Rounds 1 &amp; 2)</span></h3>
+            <ul class="payout-list">
+                <li><span>1st</span><span>8%</span></li>
+                <li><span>2nd</span><span>5%</span></li>
+                <li><span>3rd</span><span>3%</span></li>
+                <li><span>4th</span><span>2%</span></li>
+                <li><span>5th</span><span>1%</span></li>
+            </ul>
+            <p class="rules-note">Top 5 performers paid out each of rounds 1 and 2.</p>
+            <p class="rules-note">Dollar amounts will be calculated once all entries are submitted.</p>
+        </div>
+
+        <div class="rules-block rules-block--full">
+            <h3>Other Rules</h3>
+            <ul>
+                <li>Player withdrawal <strong>before</strong> tee-off: you may request a replacement within budget.</li>
+                <li>Player withdrawal <strong>after</strong> tee-off: player scores +5 per round not finished.</li>
+                <li>Questions? Email <a href="mailto:sammymarks03@gmail.com">sammymarks03@gmail.com</a></li>
+            </ul>
+        </div>
+
+    </div>
+</details>
+
+<form id="roster-form" method="POST" action="/submit">
+    <div class="builder-layout">
+
+        <!-- Player List -->
+        <div class="player-list-section">
+            <h3>Player List</h3>
+            <input type="text" id="player-search" placeholder="Search players..." autocomplete="off">
+            <table class="player-table" id="player-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Player</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                    <tr class="player-row" data-name="{{ player.name }}" data-salary="{{ player.salary }}">
+                        <td>
+                            <input
+                                type="checkbox"
+                                name="players"
+                                value="{{ player.name }}"
+                                class="player-checkbox"
+                                {% if selected_names is defined and player.name in selected_names %}checked{% endif %}
+                            >
+                        </td>
+                        <td class="player-name">{{ player.name }}</td>
+                        <td class="player-salary">${{ "{:,}".format(player.salary) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Team Summary Sidebar -->
+        <div class="team-summary" id="team-summary">
+            <h3>Your Team</h3>
+            <ul class="roster-slots" id="roster-slots">
+                <li class="roster-slot empty" id="slot-0">— Empty —</li>
+                <li class="roster-slot empty" id="slot-1">— Empty —</li>
+                <li class="roster-slot empty" id="slot-2">— Empty —</li>
+                <li class="roster-slot empty" id="slot-3">— Empty —</li>
+                <li class="roster-slot empty" id="slot-4">— Empty —</li>
+                <li class="roster-slot empty" id="slot-5">— Empty —</li>
+            </ul>
+            <div class="salary-display">
+                <span>Total: <strong id="total-salary">$0</strong></span>
+                <span>Remaining: <strong id="remaining-salary">$50,000</strong></span>
+            </div>
+
+            <hr>
+
+            <div class="submission-fields">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" placeholder="Full name" value="{{ form_name | default('') }}">
+
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" value="{{ form_email | default('') }}">
+
+                <label class="venmo-label">
+                    <input type="checkbox" name="venmo_confirmed" id="venmo-checkbox">I have sent $25 to <strong>@SammyMarks21</strong> on Venmo
+                </label>
+            </div>
+
+            <button type="submit" id="submit-btn" class="submit-btn" disabled>
+                Submit My Team
+            </button>
+            <p class="submit-hint" id="submit-hint">Select 6 players to continue</p>
+        </div>
+
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='roster.js') }}"></script>
+{% endblock %}

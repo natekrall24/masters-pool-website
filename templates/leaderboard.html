@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard — 2026 Slot Masters Pool{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <h2>Tournament Leaderboard</h2>
+    <p>Live standings — updated in real time.</p>
+</div>
+
+<div class="leaderboard-container">
+    {% if embed_url %}
+    <iframe
+        id="leaderboard-frame"
+        src="{{ embed_url }}"
+        frameborder="0"
+        allowfullscreen
+    ></iframe>
+    {% else %}
+    <p class="placeholder-text">Leaderboard coming soon. Check back once the tournament begins.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if embed_url %}
+<script>
+    // Auto-refresh the leaderboard iframe every 60 seconds
+    setInterval(function() {
+        var frame = document.getElementById("leaderboard-frame");
+        frame.src = frame.src;
+    }, 60000);
+</script>
+{% endif %}
+{% endblock %}
