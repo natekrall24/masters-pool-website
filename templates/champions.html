@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Past Champions — 2026 Slot Masters Pool{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <h2>Past Champions</h2>
+    <p>The names etched in Slot Masters history.</p>
+</div>
+
+<div class="champions-grid">
+
+    <div class="champion-card">
+        <div class="champion-year">2025</div>
+        <div class="champion-photo-wrap">
+            <img src="{{ url_for('static', filename='jason_winner_headshot.png') }}" alt="Jason Datta" class="champion-photo">
+        </div>
+        <div class="champion-info">
+            <h3 class="champion-name">Jason Datta</h3>
+            <p class="champion-title">Slot Masters Champion</p>
+        </div>
+    </div>
+
+    <div class="champion-card">
+        <div class="champion-year">2024</div>
+        <div class="champion-photo-wrap">
+            <img src="{{ url_for('static', filename='Nate_winner_headshot.png') }}" alt="Nate Krall" class="champion-photo">
+        </div>
+        <div class="champion-info">
+            <h3 class="champion-name">Nate Krall</h3>
+            <p class="champion-title">Slot Masters Champion</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

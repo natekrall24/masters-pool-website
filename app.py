@@ -194,6 +194,11 @@ def confirmation():
     return redirect(url_for("index"))
 
 
+@app.route("/champions")
+def champions():
+    return render_template("champions.html")
+
+
 @app.route("/leaderboard")
 def leaderboard():
     return render_template("leaderboard.html", embed_url=LEADERBOARD_EMBED_URL)
