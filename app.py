@@ -8,12 +8,10 @@ import json
 import time
 import traceback
 from espn_leaderboard import get_player_scores, normalize_name
-from database import init_db, save_entry, get_all_entries
+import csv
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
-
-init_db()
 
 
 @app.context_processor
@@ -31,9 +29,24 @@ _lb_cache: dict = {"data": None, "ts": 0.0}
 CACHE_TTL = 60  # seconds
 
 
+CSV_PATH = os.path.join(os.path.dirname(__file__), "entries.csv")
+
 def _get_entries_from_sheet():
-    """Read all submitted entries from SQLite (Google Sheet is backup only)."""
-    return get_all_entries()
+    """Read all confirmed entries from entries.csv."""
+    entries = []
+    try:
+        with open(CSV_PATH, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                name = row.get("Name", "").strip()
+                players = [row.get(f"Player {i}", "").strip() for i in range(1, 7)]
+                players = [p for p in players if p]
+                if not name or len(players) < 6:
+                    continue
+                entries.append({"name": name, "players": players})
+    except FileNotFoundError:
+        app.logger.error("entries.csv not found at %s", CSV_PATH)
+    return entries
 
 
 def _rank_by(entries, sort_key):
@@ -277,7 +290,7 @@ def submit():
             selected_names=selected,
         )
 
-    # Write to Google Sheet (backup) and SQLite (primary)
+    # Write to Google Sheet
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sheet = get_sheet()
@@ -294,9 +307,6 @@ def submit():
             form_email=email,
             selected_names=selected,
         )
-
-    # Write to SQLite
-    save_entry(timestamp, name, email, selected, total_salary)
 
     # Send confirmation email
     send_confirmation_email(name, email, selected_players, total_salary)
