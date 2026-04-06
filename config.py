@@ -78,6 +78,7 @@ PLAYERS = [
     {"name": "Sami Valimaki", "salary": 6500},
     {"name": "Brian Harman", "salary": 6500},
     {"name": "Nick Taylor", "salary": 6500},
+    {"name": "Matt McCarty", "salary": 6500},
     {"name": "Andrew Novak", "salary": 6400},
     {"name": "Sam Stevens", "salary": 6400},
     {"name": "Davis Riley", "salary": 6400},
