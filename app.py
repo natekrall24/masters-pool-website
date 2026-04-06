@@ -1,16 +1,137 @@
 from flask import Flask, render_template, request, redirect, url_for, make_response
-from config import SITE_MODE, PLAYERS, GOOGLE_SHEET_ID, LEADERBOARD_EMBED_URL
+from config import SITE_MODE, PLAYERS, GOOGLE_SHEET_ID
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 import os
 import json
+import time
+import traceback
+from espn_leaderboard import get_player_scores, normalize_name
+from database import init_db, save_entry, get_all_entries
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
 
+init_db()
+
+
+@app.context_processor
+def inject_site_mode():
+    return {"SITE_MODE": SITE_MODE}
+
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 PLAYER_MAP = {p["name"]: p for p in PLAYERS}
+
+# ---------------------------------------------------------------------------
+# Leaderboard cache — avoids hitting ESPN + Google Sheets on every request
+# ---------------------------------------------------------------------------
+
+_lb_cache: dict = {"data": None, "ts": 0.0}
+CACHE_TTL = 60  # seconds
+
+
+def _get_entries_from_sheet():
+    """Read all submitted entries from SQLite (Google Sheet is backup only)."""
+    return get_all_entries()
+
+
+def _rank_by(entries, sort_key):
+    """
+    Return a new list of dicts (shallow copies) sorted by sort_key ascending,
+    with golf-style 'pos' assigned.  Original dicts are not modified.
+    """
+    ranked = sorted((dict(e) for e in entries), key=lambda e: e[sort_key])
+    i = 0
+    while i < len(ranked):
+        j = i
+        while j < len(ranked) and ranked[j][sort_key] == ranked[i][sort_key]:
+            j += 1
+        label = f"T{i + 1}" if (j - i) > 1 else str(i + 1)
+        for k in range(i, j):
+            ranked[k]["pos"] = label
+        i = j
+    return ranked
+
+
+def _compute_pool_standings():
+    """Fetch live ESPN scores and sheet entries, return ranked pool standings."""
+    player_scores = get_player_scores()
+    score_map = {normalize_name(p["name"]): p for p in player_scores}
+
+    # Determine which rounds have started, excluding MC penalty (+5) from the check
+    non_mc = [p for p in player_scores if not p["missed_cut"]]
+    rounds_started = {
+        "r1": any(p["r1"] != 0 or p["r1_posted"] for p in non_mc),
+        "r2": any(p["r2"] != 0 or p["r2_posted"] for p in non_mc),
+        "r3": any(p["r3"] != 0 or p["r3_posted"] for p in non_mc),
+        "r4": any(p["r4"] != 0 or p["r4_posted"] for p in non_mc),
+    }
+    started_round_keys = [r for r in ("r1", "r2", "r3", "r4") if rounds_started[r]]
+
+    entries_raw = _get_entries_from_sheet()
+    results = []
+    for entry in entries_raw:
+        r1 = r2 = r3 = r4 = 0
+        golfers = []
+        for player_name in entry["players"]:
+            p = score_map.get(normalize_name(player_name))
+            if p:
+                r1 += p["r1"]
+                r2 += p["r2"]
+                r3 += p["r3"]
+                r4 += p["r4"]
+                golfers.append({
+                    "name": p["name"],
+                    "r1": p["r1"],
+                    "r2": p["r2"],
+                    "r3": p["r3"],
+                    "r4": p["r4"],
+                    "missed_cut": p["missed_cut"],
+                })
+            else:
+                app.logger.warning("Player not found in ESPN data: %r", player_name)
+                golfers.append({"name": player_name, "r1": 0, "r2": 0, "r3": 0, "r4": 0, "missed_cut": False})
+
+        scores = {"r1": r1, "r2": r2, "r3": r3, "r4": r4}
+        total = r1 + r2 + r3 + r4
+        display_total = sum(scores[r] for r in started_round_keys) if started_round_keys else None
+        results.append({
+            "name": entry["name"],
+            "r1": r1,
+            "r2": r2,
+            "r3": r3,
+            "r4": r4,
+            "total": total,
+            "display_total": display_total,
+            "golfers": golfers,
+        })
+
+    # Overall standings
+    overall = _rank_by(results, "total")
+
+    # Per-round standings (only when that round has started)
+    r1_standings = _rank_by(results, "r1") if rounds_started["r1"] else []
+    r2_standings = _rank_by(results, "r2") if rounds_started["r2"] else []
+
+    return {
+        "entries": overall,
+        "r1_standings": r1_standings,
+        "r2_standings": r2_standings,
+        "rounds_started": rounds_started,
+        "last_updated": datetime.now().strftime("%-I:%M %p"),
+    }
+
+
+def get_cached_leaderboard():
+    """Return pool standings, refreshing from ESPN/Sheets if the cache is stale."""
+    now = time.time()
+    if _lb_cache["data"] and now - _lb_cache["ts"] < CACHE_TTL:
+        return _lb_cache["data"]
+    data = _compute_pool_standings()
+    _lb_cache["data"] = data
+    _lb_cache["ts"] = now
+    return data
 
 
 def get_sheet():
@@ -69,14 +190,31 @@ Good luck!
         sg = SendGridAPIClient(api_key)
         sg.send(message)
     except Exception as e:
-        import traceback
         app.logger.error(f"Failed to send confirmation email: {e}\n{traceback.format_exc()}")
+
+
+def _render_leaderboard():
+    """Render the pool leaderboard in tournament-live mode."""
+    try:
+        lb = get_cached_leaderboard()
+        return render_template("leaderboard.html", **lb, error=False)
+    except Exception as e:
+        app.logger.error("Leaderboard error: %s\n%s", e, traceback.format_exc())
+        return render_template(
+            "leaderboard.html",
+            entries=[],
+            r1_standings=[],
+            r2_standings=[],
+            rounds_started={"r1": False, "r2": False, "r3": False, "r4": False},
+            last_updated=None,
+            error=True,
+        )
 
 
 @app.route("/")
 def index():
     if SITE_MODE == "tournament-live":
-        return render_template("leaderboard.html", embed_url=LEADERBOARD_EMBED_URL)
+        return _render_leaderboard()
 
     # Check for existing submission cookie
     submission = request.cookies.get("submission")
@@ -139,14 +277,13 @@ def submit():
             selected_names=selected,
         )
 
-    # Write to Google Sheet
+    # Write to Google Sheet (backup) and SQLite (primary)
     try:
-        sheet = get_sheet()
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        sheet = get_sheet()
         row = [timestamp, name, email] + selected + [total_salary, "Yes"]
         sheet.append_row(row)
     except Exception as e:
-        import traceback
         app.logger.error(f"Failed to write to Google Sheet: {type(e).__name__}: {e}\n{traceback.format_exc()}")
         return render_template(
             "roster_builder.html",
@@ -157,6 +294,9 @@ def submit():
             form_email=email,
             selected_names=selected,
         )
+
+    # Write to SQLite
+    save_entry(timestamp, name, email, selected, total_salary)
 
     # Send confirmation email
     send_confirmation_email(name, email, selected_players, total_salary)
@@ -203,14 +343,20 @@ def champions():
 
 @app.route("/leaderboard")
 def leaderboard():
-    return render_template("leaderboard.html", embed_url=LEADERBOARD_EMBED_URL)
+    if SITE_MODE == "tournament-live":
+        return _render_leaderboard()
+    return render_template("leaderboard.html",
+                           entries=[],
+                           r1_standings=[],
+                           r2_standings=[],
+                           rounds_started={"r1": False, "r2": False, "r3": False, "r4": False},
+                           last_updated=None,
+                           error=False)
 
 
 @app.route("/lineups")
 def lineups():
-    entries = []
     my_name = None
-
     submission = request.cookies.get("submission")
     if submission:
         try:
@@ -218,6 +364,15 @@ def lineups():
             my_name = data.get("name", "").strip().lower()
         except Exception:
             pass
+
+    if SITE_MODE != "tournament-live":
+        return render_template("lineups.html", entries=[], my_name=my_name)
+
+    try:
+        entries = _get_entries_from_sheet()
+    except Exception as e:
+        app.logger.error("Failed to load lineups: %s", e)
+        entries = []
 
     return render_template("lineups.html", entries=entries, my_name=my_name)
 

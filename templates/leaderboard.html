@@ -3,35 +3,382 @@
 
 {% block content %}
 <div class="page-hero">
-    <h2>Tournament Leaderboard</h2>
-    <p>Live standings — updated in real time.</p>
-</div>
-
-<div class="leaderboard-container">
-    {% if embed_url %}
-    <iframe
-        id="leaderboard-frame"
-        src="{{ embed_url }}"
-        frameborder="0"
-        allowfullscreen
-    ></iframe>
+    <h2>Pool Leaderboard</h2>
+    {% if last_updated %}
+    <p class="lb-updated">Updated {{ last_updated }} &mdash; refreshes every 60 seconds</p>
     {% else %}
-    <p class="placeholder-text">The leaderboard will be available once the Masters begins. Check back April 9th!</p>
-    <div class="page-image-container">
-        <img src="{{ url_for('static', filename='Golf swing on a lush course.png') }}" alt="Golf swing on a lush course" class="page-image">
-    </div>
+    <p>Live standings during the Masters tournament.</p>
     {% endif %}
 </div>
+
+{% if error %}
+<div class="lb-error">
+    <p>Unable to load leaderboard data. Please try refreshing the page.</p>
+</div>
+
+{% elif not entries %}
+<p class="placeholder-text">The leaderboard will be available once the Masters begins. Check back April 9th!</p>
+<div class="page-image-container">
+    <img src="{{ url_for('static', filename='Golf swing on a lush course.png') }}"
+         alt="Golf swing on a lush course" class="page-image">
+</div>
+
+{% else %}
+
+{# ── Score formatting macro ───────────────────────────────────────────────── #}
+{% macro fmt(val, started) %}
+    {%- if not started -%}<span class="s-dash">--</span>
+    {%- elif val == 0 -%}<span class="s-even">E</span>
+    {%- elif val > 0 -%}<span class="s-over">+{{ val }}</span>
+    {%- else -%}<span class="s-under">{{ val }}</span>
+    {%- endif -%}
+{% endmacro %}
+
+{# ── Medal/money class helper ─────────────────────────────────────────────── #}
+{% macro medal_class(pos_str) %}
+    {%- set n = pos_str.lstrip('T') | int -%}
+    {%- if n == 1 -%}gold{%- elif n == 2 -%}silver{%- elif n == 3 -%}bronze{%- elif n <= 5 -%}money{%- endif -%}
+{% endmacro %}
+
+{# ── Tab bar ──────────────────────────────────────────────────────────────── #}
+<div class="lb-tabs">
+    <button class="lb-tab active" data-tab="overall" onclick="showTab('overall')">Overall</button>
+    {% if r1_standings %}
+    <button class="lb-tab" data-tab="r1" onclick="showTab('r1')">Round 1</button>
+    {% endif %}
+    {% if r2_standings %}
+    <button class="lb-tab" data-tab="r2" onclick="showTab('r2')">Round 2</button>
+    {% endif %}
+</div>
+
+{# ── Overall panel ────────────────────────────────────────────────────────── #}
+<div class="lb-panel active" id="panel-overall">
+    <div class="lb-wrap">
+        <table class="lb-table">
+            <thead>
+                <tr>
+                    <th class="col-pos">Pos</th>
+                    <th class="col-name">Name</th>
+                    <th class="col-round">R1</th>
+                    <th class="col-round">R2</th>
+                    <th class="col-round">R3</th>
+                    <th class="col-round">R4</th>
+                    <th class="col-total">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                {%- set mc = medal_class(entry.pos) | trim -%}
+                <tr class="lb-row lb-row--clickable{% if mc %} lb-row--{{ mc }}{% endif %}"
+                    data-entry='{{ entry | tojson }}'
+                    onclick="openEntryModal(this)">
+                    <td class="col-pos"><span class="pos-badge{% if mc %} pos-badge--{{ mc }}{% endif %}">{{ entry.pos }}</span></td>
+                    <td class="col-name">{{ entry.name }}</td>
+                    <td class="col-round">{{ fmt(entry.r1, rounds_started.r1) }}</td>
+                    <td class="col-round">{{ fmt(entry.r2, rounds_started.r2) }}</td>
+                    <td class="col-round">{{ fmt(entry.r3, rounds_started.r3) }}</td>
+                    <td class="col-round">{{ fmt(entry.r4, rounds_started.r4) }}</td>
+                    <td class="col-total">{{ fmt(entry.display_total, entry.display_total is not none) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ── Round 1 panel ────────────────────────────────────────────────────────── #}
+{% if r1_standings %}
+<div class="lb-panel" id="panel-r1">
+    <div class="lb-wrap">
+        <table class="lb-table lb-table--round">
+            <thead>
+                <tr>
+                    <th class="col-pos">Pos</th>
+                    <th class="col-name">Name</th>
+                    <th class="col-total">R1</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in r1_standings %}
+                {%- set mc = medal_class(entry.pos) | trim -%}
+                <tr class="lb-row lb-row--clickable{% if mc %} lb-row--{{ mc }}{% endif %}"
+                    data-entry='{{ entry | tojson }}'
+                    onclick="openRoundModal(this, 'r1')">
+                    <td class="col-pos"><span class="pos-badge{% if mc %} pos-badge--{{ mc }}{% endif %}">{{ entry.pos }}</span></td>
+                    <td class="col-name">{{ entry.name }}</td>
+                    <td class="col-total">{{ fmt(entry.r1, rounds_started.r1) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ── Round 2 panel ────────────────────────────────────────────────────────── #}
+{% if r2_standings %}
+<div class="lb-panel" id="panel-r2">
+    <div class="lb-wrap">
+        <table class="lb-table lb-table--round">
+            <thead>
+                <tr>
+                    <th class="col-pos">Pos</th>
+                    <th class="col-name">Name</th>
+                    <th class="col-total">R2</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in r2_standings %}
+                {%- set mc = medal_class(entry.pos) | trim -%}
+                <tr class="lb-row lb-row--clickable{% if mc %} lb-row--{{ mc }}{% endif %}"
+                    data-entry='{{ entry | tojson }}'
+                    onclick="openRoundModal(this, 'r2')">
+                    <td class="col-pos"><span class="pos-badge{% if mc %} pos-badge--{{ mc }}{% endif %}">{{ entry.pos }}</span></td>
+                    <td class="col-name">{{ entry.name }}</td>
+                    <td class="col-total">{{ fmt(entry.r2, rounds_started.r2) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Entry detail modal -->
+<div class="entry-modal-overlay" id="entry-modal" onclick="handleOverlayClick(event)">
+    <div class="entry-modal-card">
+        <button class="entry-modal-close" onclick="closeEntryModal()">&times;</button>
+        <h3 class="entry-modal-name" id="modal-name"></h3>
+        <div class="entry-modal-scroll">
+            <table class="entry-modal-table">
+                <thead>
+                    <tr>
+                        <th class="emt-golfer">Golfer</th>
+                        <th class="emt-score">R1</th>
+                        <th class="emt-score">R2</th>
+                        <th class="emt-score">R3</th>
+                        <th class="emt-score">R4</th>
+                        <th class="emt-score emt-total">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-body"></tbody>
+                <tfoot id="modal-foot"></tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endif %}{# ── closes {% if error %} / {% elif %} / {% else %} ── #}
 {% endblock %}
 
 {% block extra_scripts %}
-{% if embed_url %}
+{% if entries %}
 <script>
-    // Auto-refresh the leaderboard iframe every 60 seconds
-    setInterval(function() {
-        var frame = document.getElementById("leaderboard-frame");
-        frame.src = frame.src;
-    }, 60000);
+const ROUNDS_STARTED = {{ rounds_started | tojson }};
+
+var _activeTab = 'overall';
+
+function showTab(id) {
+    document.querySelectorAll('.lb-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.lb-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.getElementById('panel-' + id).classList.add('active');
+    document.querySelector('[data-tab="' + id + '"]').classList.add('active');
+    _activeTab = id;
+}
+
+// Restore active tab only when coming from a programmatic 60s reload (not fresh navigation)
+(function() {
+    var isReload = sessionStorage.getItem('_lbReload');
+    sessionStorage.removeItem('_lbReload');
+    if (isReload) {
+        var saved = sessionStorage.getItem('_lbTab');
+        if (saved && document.getElementById('panel-' + saved)) {
+            showTab(saved);
+        }
+    }
+    sessionStorage.removeItem('_lbTab');
+})();
+
+function fmtScore(val, started) {
+    if (!started) return '<span class="s-dash">--</span>';
+    if (val === 0) return '<span class="s-even">E</span>';
+    if (val > 0)  return '<span class="s-over">+'  + val + '</span>';
+    return '<span class="s-under">' + val + '</span>';
+}
+
+function openEntryModal(row) {
+    var entry = JSON.parse(row.dataset.entry);
+    document.getElementById('modal-name').textContent = entry.name;
+    document.querySelector('.entry-modal-card').classList.remove('entry-modal-card--narrow');
+
+    // Restore full 6-column header
+    document.querySelector('.entry-modal-table thead tr').innerHTML =
+        '<th class="emt-golfer">Golfer</th>' +
+        '<th class="emt-score">R1</th>' +
+        '<th class="emt-score">R2</th>' +
+        '<th class="emt-score">R3</th>' +
+        '<th class="emt-score">R4</th>' +
+        '<th class="emt-score emt-total">Total</th>';
+
+    var rs = ROUNDS_STARTED;
+    var startedKeys = ['r1','r2','r3','r4'].filter(function(k){ return rs[k]; });
+
+    var tbody = document.getElementById('modal-body');
+    tbody.innerHTML = '';
+
+    // Compute display total for each golfer, then sort best score first
+    var golfersWithTotal = entry.golfers.map(function(g) {
+        var displayTotal = startedKeys.length
+            ? startedKeys.reduce(function(s, k){ return s + g[k]; }, 0)
+            : null;
+        return Object.assign({}, g, { displayTotal: displayTotal });
+    });
+    golfersWithTotal.sort(function(a, b) {
+        if (a.displayTotal === null && b.displayTotal === null) return 0;
+        if (a.displayTotal === null) return 1;
+        if (b.displayTotal === null) return -1;
+        return a.displayTotal - b.displayTotal;
+    });
+
+    golfersWithTotal.forEach(function(g) {
+        var mc = g.missed_cut ? ' <span class="emt-mc">MC</span>' : '';
+        var tr = document.createElement('tr');
+        if (g.missed_cut) tr.classList.add('emt-row--mc');
+        tr.innerHTML =
+            '<td class="emt-golfer">' + g.name + mc + '</td>' +
+            '<td class="emt-score">' + fmtScore(g.r1, rs.r1) + '</td>' +
+            '<td class="emt-score">' + fmtScore(g.r2, rs.r2) + '</td>' +
+            '<td class="emt-score">' + fmtScore(g.r3, rs.r3) + '</td>' +
+            '<td class="emt-score">' + fmtScore(g.r4, rs.r4) + '</td>' +
+            '<td class="emt-score emt-total">' + fmtScore(g.displayTotal, g.displayTotal !== null) + '</td>';
+        tbody.appendChild(tr);
+    });
+
+    // Totals row
+    var totals = {r1: entry.r1, r2: entry.r2, r3: entry.r3, r4: entry.r4};
+    var grandTotal = startedKeys.length
+        ? startedKeys.reduce(function(s, k){ return s + totals[k]; }, 0)
+        : null;
+    var tfoot = document.getElementById('modal-foot');
+    tfoot.innerHTML =
+        '<tr class="emt-totals-row">' +
+        '<td class="emt-golfer">Total</td>' +
+        '<td class="emt-score">' + fmtScore(entry.r1, rs.r1) + '</td>' +
+        '<td class="emt-score">' + fmtScore(entry.r2, rs.r2) + '</td>' +
+        '<td class="emt-score">' + fmtScore(entry.r3, rs.r3) + '</td>' +
+        '<td class="emt-score">' + fmtScore(entry.r4, rs.r4) + '</td>' +
+        '<td class="emt-score emt-total">' + fmtScore(grandTotal, grandTotal !== null) + '</td>' +
+        '</tr>';
+
+    document.getElementById('entry-modal').classList.add('active');
+}
+
+function closeEntryModal() {
+    document.getElementById('entry-modal').classList.remove('active');
+}
+
+function openRoundModal(row, round) {
+    var entry = JSON.parse(row.dataset.entry);
+    var label = round.toUpperCase();
+    document.getElementById('modal-name').textContent = entry.name;
+    document.querySelector('.entry-modal-card').classList.add('entry-modal-card--narrow');
+
+    // Single-round header
+    document.querySelector('.entry-modal-table thead tr').innerHTML =
+        '<th class="emt-golfer">Golfer</th>' +
+        '<th class="emt-score emt-total">' + label + '</th>';
+
+    var rs = ROUNDS_STARTED;
+    var tbody = document.getElementById('modal-body');
+    tbody.innerHTML = '';
+
+    // Sort golfers by this round's score best first, MC last
+    var sorted = entry.golfers.slice().sort(function(a, b) {
+        if (a.missed_cut && !b.missed_cut) return 1;
+        if (!a.missed_cut && b.missed_cut) return -1;
+        return a[round] - b[round];
+    });
+
+    sorted.forEach(function(g) {
+        var mc = g.missed_cut ? ' <span class="emt-mc">MC</span>' : '';
+        var tr = document.createElement('tr');
+        if (g.missed_cut) tr.classList.add('emt-row--mc');
+        tr.innerHTML =
+            '<td class="emt-golfer">' + g.name + mc + '</td>' +
+            '<td class="emt-score emt-total">' + fmtScore(g[round], rs[round]) + '</td>';
+        tbody.appendChild(tr);
+    });
+
+    // Totals row
+    document.getElementById('modal-foot').innerHTML =
+        '<tr class="emt-totals-row">' +
+        '<td class="emt-golfer">Total</td>' +
+        '<td class="emt-score emt-total">' + fmtScore(entry[round], rs[round]) + '</td>' +
+        '</tr>';
+
+    document.getElementById('entry-modal').classList.add('active');
+}
+
+function handleOverlayClick(e) {
+    if (e.target.id === 'entry-modal') closeEntryModal();
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeEntryModal();
+});
+
+// ── Preserve modal state across 60-second refreshes ───────────────────────
+var _modalType = null; // 'overall', 'r1', or 'r2'
+
+function _setModalType(type) { _modalType = type; }
+
+// Patch open functions to track type
+var _origOpenEntry = openEntryModal;
+openEntryModal = function(row) { _setModalType('overall'); _origOpenEntry(row); };
+var _origOpenRound = openRoundModal;
+openRoundModal = function(row, round) { _setModalType(round); _origOpenRound(row, round); };
+
+closeEntryModal = function() {
+    document.getElementById('entry-modal').classList.remove('active');
+    _modalType = null;
+};
+
+function _saveModalState() {
+    var modal = document.getElementById('entry-modal');
+    if (!modal.classList.contains('active') || !_modalType) {
+        sessionStorage.removeItem('_lbModal');
+        return;
+    }
+    var name = document.getElementById('modal-name').textContent;
+    sessionStorage.setItem('_lbModal', JSON.stringify({ name: name, type: _modalType }));
+}
+
+function _restoreModalState() {
+    var raw = sessionStorage.getItem('_lbModal');
+    if (!raw) return;
+    sessionStorage.removeItem('_lbModal');
+    var state;
+    try { state = JSON.parse(raw); } catch(e) { return; }
+    var rows = document.querySelectorAll('.lb-row--clickable');
+    for (var i = 0; i < rows.length; i++) {
+        var entry;
+        try { entry = JSON.parse(rows[i].dataset.entry); } catch(e) { continue; }
+        if (entry.name === state.name) {
+            if (state.type === 'overall') {
+                _origOpenEntry(rows[i]);
+                _modalType = 'overall';
+            } else {
+                _origOpenRound(rows[i], state.type);
+                _modalType = state.type;
+            }
+            break;
+        }
+    }
+}
+
+setTimeout(function() { _saveModalState(); sessionStorage.setItem('_lbTab', _activeTab); sessionStorage.setItem('_lbReload', '1'); location.reload(); }, 60000);
+document.addEventListener('DOMContentLoaded', _restoreModalState);
+_restoreModalState();
 </script>
 {% endif %}
 {% endblock %}

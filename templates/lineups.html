@@ -1,34 +1,47 @@
 {% extends "base.html" %}
-{% block title %}All Lineups — 2026 Slot Masters Pool{% endblock %}
+{% block title %}Lineups — 2026 Slot Masters Pool{% endblock %}
 
 {% block content %}
 <div class="page-hero">
-    <h2>All Submitted Lineups</h2>
+    <h2>All Lineups</h2>
 </div>
 
-{% if entries %}
-<div class="lineups-grid">
-    {% for entry in entries %}
-    <div class="lineup-card">
-        <div class="lineup-header">
-            <span class="lineup-name">{{ entry.name }}</span>
-            <span class="lineup-total">${{ "{:,}".format(entry.total_salary) }}</span>
-        </div>
-        <ul class="lineup-players">
-            {% for player in entry.players %}
-            <li>
-                <span class="lp-name">{{ player.name }}</span>
-                <span class="lp-salary">${{ "{:,}".format(player.salary) }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endfor %}
-</div>
-{% else %}
-<p class="placeholder-text">Lineups will be available when all teams are submitted. No cheating!</p>
+{% if not entries %}
+<p class="placeholder-text">Lineups will be revealed once the tournament begins. No cheating!</p>
 <div class="page-image-container">
-    <img src="{{ url_for('static', filename='Celebrating at Augusta National Golf Club.png') }}" alt="Celebrating at Augusta National Golf Club" class="page-image">
+    <img src="{{ url_for('static', filename='Celebrating at Augusta National Golf Club.png') }}"
+         alt="Celebrating at Augusta National Golf Club" class="page-image">
+</div>
+
+{% else %}
+<div class="lineups-wrap">
+    <table class="lineups-table">
+        <thead>
+            <tr>
+                <th class="lu-name">Entrant</th>
+                <th class="lu-golfer">Golfer 1</th>
+                <th class="lu-golfer">Golfer 2</th>
+                <th class="lu-golfer">Golfer 3</th>
+                <th class="lu-golfer">Golfer 4</th>
+                <th class="lu-golfer">Golfer 5</th>
+                <th class="lu-golfer">Golfer 6</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            {% set is_me = my_name and entry.name.lower() == my_name %}
+            <tr class="lu-row{% if is_me %} lu-row--me{% endif %}">
+                <td class="lu-name">
+                    {{ entry.name }}
+                    {% if is_me %}<span class="lu-you">You</span>{% endif %}
+                </td>
+                {% for player in entry.players %}
+                <td class="lu-golfer">{{ player }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endif %}
 {% endblock %}

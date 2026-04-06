@@ -18,7 +18,7 @@
             <nav class="site-nav">
                 <a href="/">Home</a>
                 <a href="/lineups">Lineups</a>
-                <a href="/leaderboard">Leaderboard</a>
+                {% if SITE_MODE != "tournament-live" %}<a href="/leaderboard">Leaderboard</a>{% endif %}
                 <a href="/champions">Champions</a>
             </nav>
         </div>

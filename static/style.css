@@ -621,72 +621,480 @@ a:hover {
    LINEUPS PAGE
 ============================================================ */
 
-.lineups-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.25rem;
+.lineups-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
-.lineup-card {
-    border: 1px solid #e0e0e0;
-    border-top: 3px solid #006747;
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+.lineups-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
 }
 
-.lineup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Header */
+.lineups-table thead tr {
     background: #006747;
     color: #fff;
-    padding: 0.75rem 1rem;
+}
+
+.lineups-table thead th {
+    padding: 0.85rem 1.25rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.7rem;
     font-weight: 700;
-    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: left;
+    color: #fff;
+    border: none;
 }
 
-.lineup-total {
-    font-size: 0.8rem;
-    opacity: 0.85;
-    font-variant-numeric: tabular-nums;
+/* Rows */
+.lu-row td {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: top;
 }
 
-.lineup-players {
-    list-style: none;
-    padding: 0.5rem 0;
-}
-
-.lineup-players li {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.4rem 1rem;
-    font-size: 0.85rem;
-    border-bottom: 1px solid #f5f5f5;
-}
-
-.lineup-players li:last-child {
+.lu-row:last-child td {
     border-bottom: none;
 }
 
-.lp-salary {
-    color: #888;
-    font-variant-numeric: tabular-nums;
+.lu-row:nth-child(even) td {
+    background: #fafafa;
+}
+
+.lu-row:hover td {
+    background: #f0f8f4;
+}
+
+/* "You" highlight */
+.lu-row--me td {
+    background: #fffbe6 !important;
+}
+
+.lu-row--me:hover td {
+    background: #fff5c0 !important;
+}
+
+/* Name column */
+.lu-name {
+    width: 160px;
+    white-space: nowrap;
+    font-weight: 700;
+    color: #1a1a1a;
+    vertical-align: middle !important;
+}
+
+.lu-you {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: #FFD700;
+    color: #5a3e00;
+    border-radius: 99px;
+    padding: 0.1rem 0.45rem;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+}
+
+/* Golfer columns */
+.lu-golfer {
+    font-size: 0.85rem;
+    color: #333;
+    white-space: nowrap;
+    border-left: 1px solid #f0f0f0;
+}
+
+.lineups-table thead th.lu-golfer {
+    border-left: 1px solid rgba(255,255,255,0.15);
 }
 
 /* ============================================================
    LEADERBOARD PAGE
 ============================================================ */
 
-.leaderboard-container {
-    width: 100%;
+.lb-updated {
+    font-size: 0.82rem;
+    color: #888;
+    margin-top: 0.25rem;
 }
 
-.leaderboard-container iframe {
+.lb-error {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #c0392b;
+    font-size: 1rem;
+}
+
+/* Constrain table width and center it */
+.lb-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+    border: 1px solid #ddd;
+}
+
+.lb-table {
     width: 100%;
-    height: 75vh;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
+    border-collapse: collapse;
+    font-size: 0.93rem;
+    min-width: 460px;
+}
+
+/* ── Header ── */
+.lb-table thead tr {
+    background: #006747;
+    color: #ffffff;
+}
+
+.lb-table thead th {
+    padding: 0.9rem 0.75rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    white-space: nowrap;
+    border: none;
+}
+
+/* ── Rows ── */
+.lb-row td {
+    padding: 0.72rem 0.75rem;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.lb-row:last-child td {
+    border-bottom: none;
+}
+
+.lb-row:nth-child(even) td {
+    background: #f9f9f9;
+}
+
+.lb-row:hover td {
+    background: #eef7f2 !important;
+}
+
+/* ── Medal + money row tints ── */
+.lb-row--gold   td { background: #fffbe6 !important; }
+.lb-row--silver td { background: #f6f6f6 !important; }
+.lb-row--bronze td { background: #fef6ee !important; }
+.lb-row--money  td { background: #f2fbf5 !important; }
+
+.lb-row--gold:hover   td { background: #fff5c0 !important; }
+.lb-row--silver:hover td { background: #ececec !important; }
+.lb-row--bronze:hover td { background: #fdeedd !important; }
+.lb-row--money:hover  td { background: #e0f5ea !important; }
+
+/* ── Column sizing and alignment ── */
+.col-pos  { width: 52px; }
+.col-name { width: 180px; }
+
+/* Name cells: left-align both header and data (override generic center) */
+.lb-table thead th.col-name,
+.lb-row td.col-name {
+    text-align: left;
+    padding-left: 1.1rem;
+}
+
+.lb-row td.col-name {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.col-round { width: 60px;  font-variant-numeric: tabular-nums; }
+.col-total { width: 66px;  font-variant-numeric: tabular-nums; font-weight: 700; }
+
+/* Total column header: slightly separated from rounds */
+.lb-table thead th.col-total,
+.lb-row td.col-total {
+    border-left: 1px solid rgba(255,255,255,0.15);
+}
+.lb-row td.col-total {
+    border-left-color: #e8e8e8;
+}
+
+/* ── Position badge ── */
+.pos-badge {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #666;
+    min-width: 28px;
+    text-align: center;
+    line-height: 1;
+}
+
+.pos-badge--gold {
+    background: #FFD700;
+    color: #5a3e00;
+    border-radius: 99px;
+    padding: 0.2rem 0.5rem;
+}
+
+.pos-badge--silver {
+    background: #b0b0b0;
+    color: #fff;
+    border-radius: 99px;
+    padding: 0.2rem 0.5rem;
+}
+
+.pos-badge--bronze {
+    background: #c07830;
+    color: #fff;
+    border-radius: 99px;
+    padding: 0.2rem 0.5rem;
+}
+
+/* ── Position badge — money (4th–5th) ── */
+.pos-badge--money {
+    background: #e6f4ec;
+    color: #006747;
+    border-radius: 99px;
+    padding: 0.2rem 0.5rem;
+}
+
+/* ── Clickable rows ── */
+.lb-row--clickable {
+    cursor: pointer;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ENTRY DETAIL MODAL
+══════════════════════════════════════════════════════════════ */
+
+.entry-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.entry-modal-overlay.active {
+    display: flex;
+}
+
+.entry-modal-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.entry-modal-card--narrow {
+    max-width: 300px;
+}
+
+.entry-modal-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.9rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #aaa;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+}
+
+.entry-modal-close:hover {
+    color: #333;
+}
+
+.entry-modal-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: #006747;
+    padding: 1.25rem 1.5rem 0.75rem;
+    border-bottom: 2px solid #006747;
+    margin: 0;
+    padding-right: 2.5rem;  /* avoid overlap with × button */
+}
+
+.entry-modal-scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Modal table */
+.entry-modal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.entry-modal-table thead tr {
+    background: #f5f5f5;
+}
+
+.entry-modal-table thead th {
+    padding: 0.6rem 0.85rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #555;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.entry-modal-table thead th.emt-golfer {
+    text-align: left;
+}
+
+.entry-modal-table tbody tr td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid #f5f5f5;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.entry-modal-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.entry-modal-table tbody tr:hover td {
+    background: #f9fdf9;
+}
+
+.emt-golfer {
+    text-align: left !important;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.emt-score {
+    width: 52px;
+    font-variant-numeric: tabular-nums;
+}
+
+.emt-total {
+    font-weight: 700;
+    border-left: 1px solid #e8e8e8;
+}
+
+/* Totals footer row */
+.emt-totals-row td {
+    padding: 0.7rem 0.85rem !important;
+    border-top: 2px solid #e0e0e0 !important;
+    border-bottom: none !important;
+    font-weight: 700;
+    background: #f9fdf9;
+}
+
+.emt-totals-row .emt-golfer {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #006747;
+}
+
+/* Missed-cut row — greyed out */
+.emt-row--mc td {
+    color: #aaa;
+    font-style: italic;
+    background: #f4f4f4;
+}
+.emt-row--mc .s-under { color: #e8a09a; font-weight: 400; }
+.emt-row--mc .s-over  { color: #8fbc9e; font-weight: 400; }
+.emt-row--mc .s-even  { color: #bbb;    font-weight: 400; }
+.emt-row--mc .s-dash  { color: #ccc;    font-weight: 400; }
+
+/* Missed-cut badge */
+.emt-mc {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #c0392b;
+    margin-left: 0.35rem;
+    vertical-align: middle;
+}
+
+/* ── Score colours ── */
+.s-under { color: #c0392b; font-weight: 700; }
+.s-even  { color: #777;    font-weight: 400; }
+.s-over  { color: #006747; font-weight: 700; }
+.s-dash  { color: #ccc;    font-weight: 400; }
+
+/* ── Tab bar ── */
+.lb-tabs {
+    display: flex;
+    gap: 0.4rem;
+    max-width: 680px;
+    margin: 0 auto 0.75rem;
+}
+
+.lb-tab {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.45rem 1.1rem;
+    border: 2px solid #006747;
+    border-radius: 99px;
+    background: transparent;
+    color: #006747;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.lb-tab:hover {
+    background: #e8f5ef;
+}
+
+.lb-tab.active {
+    background: #006747;
+    color: #fff;
+}
+
+/* ── Panels (one visible at a time) ── */
+.lb-panel {
+    display: none;
+}
+
+.lb-panel.active {
+    display: block;
+}
+
+/* Round tables only have 3 columns — override the wide min-width */
+.lb-table--round {
+    min-width: 180px;
+}
+
+.lb-table--round .col-name {
+    width: auto;
+    white-space: nowrap;
 }
 
 /* ============================================================
