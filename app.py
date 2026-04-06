@@ -31,6 +31,17 @@ CACHE_TTL = 60  # seconds
 
 CSV_PATH = os.path.join(os.path.dirname(__file__), "entries.csv")
 
+def _get_total_pot():
+    """Count confirmed entries in entries.csv and return total pot (entries × $25)."""
+    try:
+        with open(CSV_PATH, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            count = sum(1 for row in reader if row.get("Name", "").strip())
+        return count * 25
+    except FileNotFoundError:
+        return 0
+
+
 def _get_entries_from_sheet():
     """Read all confirmed entries from entries.csv."""
     entries = []
@@ -208,9 +219,10 @@ Good luck!
 
 def _render_leaderboard():
     """Render the pool leaderboard in tournament-live mode."""
+    total_pot = _get_total_pot()
     try:
         lb = get_cached_leaderboard()
-        return render_template("leaderboard.html", **lb, error=False)
+        return render_template("leaderboard.html", **lb, error=False, total_pot=total_pot)
     except Exception as e:
         app.logger.error("Leaderboard error: %s\n%s", e, traceback.format_exc())
         return render_template(
@@ -221,6 +233,7 @@ def _render_leaderboard():
             rounds_started={"r1": False, "r2": False, "r3": False, "r4": False},
             last_updated=None,
             error=True,
+            total_pot=total_pot,
         )
 
 
@@ -361,7 +374,8 @@ def leaderboard():
                            r2_standings=[],
                            rounds_started={"r1": False, "r2": False, "r3": False, "r4": False},
                            last_updated=None,
-                           error=False)
+                           error=False,
+                           total_pot=_get_total_pot())
 
 
 @app.route("/lineups")

@@ -70,6 +70,15 @@ a:hover {
 .site-title a {
     color: #006747;
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.site-title-logo {
+    height: 2rem;
+    width: auto;
+    display: block;
 }
 
 .site-nav {
@@ -113,7 +122,7 @@ a:hover {
 
 .page-hero {
     text-align: center;
-    padding: 2.5rem 1rem 2rem;
+    padding: 2.5rem 1rem 1.25rem;
     border-bottom: 1px solid #e0e0e0;
     margin-bottom: 2rem;
 }
@@ -167,6 +176,17 @@ a:hover {
     border-radius: 6px;
     margin-bottom: 2rem;
     overflow: hidden;
+}
+
+.page-hero .rules-section {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    text-align: left;
+}
+
+.page-hero .rules-note {
+    font-size: 0.78rem;
+    color: #888;
 }
 
 .rules-section summary {
