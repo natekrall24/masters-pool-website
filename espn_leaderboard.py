@@ -43,13 +43,28 @@ PAR = 72
 CUT_SPOTS = 50  # top 50 players + ties make the cut; cut line calculated dynamically
 
 
+# Characters that NFD won't decompose — map them explicitly before stripping diacritics.
+_CHAR_SUBS = [("æ", "ae"), ("ø", "o"), ("ð", "d"), ("þ", "th")]
+
+# ESPN nickname → canonical pool-config name (both already normalized).
+_NAME_ALIASES: dict[str, str] = {
+    "nico echavarria": "nicolas echavarria",
+}
+
+
 def normalize_name(name: str) -> str:
     """
     Lowercase + strip diacritics so "Ludvig Åberg" matches "Ludvig Aberg".
+    Also handles characters NFD won't decompose (ø→o, æ→ae, etc.) and
+    ESPN nickname aliases (e.g. "Nico" → "Nicolas").
     Used for fuzzy player name matching between pool picks and ESPN data.
     """
+    name = name.lower().strip()
+    for old, new in _CHAR_SUBS:
+        name = name.replace(old, new)
     nfd = unicodedata.normalize("NFD", name)
-    return "".join(c for c in nfd if unicodedata.category(c) != "Mn").lower().strip()
+    normalized = "".join(c for c in nfd if unicodedata.category(c) != "Mn")
+    return _NAME_ALIASES.get(normalized, normalized)
 
 
 # ---------------------------------------------------------------------------
@@ -178,6 +193,9 @@ def parse_player_scores(rows: list[list[str]]) -> list[dict]:
             return row[ci].strip() if ci is not None and ci < len(row) else default
 
         name      = g(ci_player)
+        # Strip ESPN's amateur indicator, e.g. "Sam Bennett (a)" → "Sam Bennett"
+        if name.endswith(" (a)"):
+            name = name[:-4].rstrip()
         score_str = g(ci_score)
         today_str = g(ci_today)
         thru_str  = g(ci_thru)
