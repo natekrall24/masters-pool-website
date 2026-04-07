@@ -7,8 +7,26 @@ SITE_MODE to tournament-live:
     python check_names.py
 """
 
+import csv
+import os
 from espn_leaderboard import get_player_scores, normalize_name
-from database import get_all_entries
+
+CSV_PATH = os.path.join(os.path.dirname(__file__), "entries.csv")
+
+def get_all_entries():
+    entries = []
+    try:
+        with open(CSV_PATH, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                name = row.get("Name", "").strip()
+                players = [row.get(f"Player {i}", "").strip() for i in range(1, 7)]
+                players = [p for p in players if p]
+                if name and len(players) == 6:
+                    entries.append({"name": name, "players": players})
+    except FileNotFoundError:
+        print(f"ERROR: entries.csv not found at {CSV_PATH}")
+    return entries
 
 def main():
     print("Fetching ESPN leaderboard...")
@@ -27,7 +45,7 @@ def main():
 
     entries = get_all_entries()
     if not entries:
-        print("ERROR: No entries found in the database.")
+        print("ERROR: No entries found in entries.csv.")
         return
 
     print(f"Checking {len(entries)} pool entries...\n")
