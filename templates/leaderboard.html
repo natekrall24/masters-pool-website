@@ -10,64 +10,6 @@
     <p>Live standings during the Masters tournament.</p>
     {% endif %}
 
-    <!-- How to Play & Rules -->
-    <details class="rules-section">
-    <summary>How To Play &amp; Rules</summary>
-    <div class="rules-content">
-
-        <div class="rules-block">
-            <h3>How To Play</h3>
-            <ol>
-                <li>Select SIX players with costs that add up to $50,000 or less</li>
-                <li>Venmo $25 to <strong>@SammyMarks21</strong> before submitting</li>
-                <li>Submit by <strong>Wednesday, April 8th at 11:59 PM</strong></li>
-            </ol>
-        </div>
-
-        <div class="rules-block">
-            <h3>Scoring</h3>
-            <ul>
-                <li>Your score is the sum of your players' strokes</li>
-                <li>Lowest total score wins</li>
-                <li>Missed cut = +5 strokes for each of rounds 3 and 4</li>
-            </ul>
-        </div>
-
-        <div class="rules-block">
-            <h3>Overall Payouts</h3>
-            <ul class="payout-list">
-                <li><span>1st Place</span><span>${{ "%.2f"|format(total_pot * 0.25) }}</span></li>
-                <li><span>2nd Place</span><span>${{ "%.2f"|format(total_pot * 0.15) }}</span></li>
-                <li><span>3rd Place</span><span>${{ "%.2f"|format(total_pot * 0.09) }}</span></li>
-                <li><span>4th Place</span><span>${{ "%.2f"|format(total_pot * 0.05) }}</span></li>
-                <li><span>5th Place</span><span>${{ "%.2f"|format(total_pot * 0.04) }}</span></li>
-                <li><span>Last Place</span><span>${{ "%.2f"|format(total_pot * 0.04) }}</span></li>
-            </ul>
-        </div>
-
-        <div class="rules-block">
-            <h3>Round Payouts <span class="rules-subhead">(Rounds 1 &amp; 2)</span></h3>
-            <ul class="payout-list">
-                <li><span>1st</span><span>${{ "%.2f"|format(total_pot * 0.08) }}</span></li>
-                <li><span>2nd</span><span>${{ "%.2f"|format(total_pot * 0.05) }}</span></li>
-                <li><span>3rd</span><span>${{ "%.2f"|format(total_pot * 0.03) }}</span></li>
-                <li><span>4th</span><span>${{ "%.2f"|format(total_pot * 0.02) }}</span></li>
-                <li><span>5th</span><span>${{ "%.2f"|format(total_pot * 0.01) }}</span></li>
-            </ul>
-            <p class="rules-note">Top 5 performers paid out each of rounds 1 and 2.</p>
-        </div>
-
-        <div class="rules-block rules-block--full">
-            <h3>Other Rules</h3>
-            <ul>
-                <li>Player withdrawal <strong>before</strong> tee-off: you may request a replacement within budget.</li>
-                <li>Player withdrawal <strong>after</strong> tee-off: player scores +5 per round not finished.</li>
-                <li>Questions? Email <a href="mailto:sammymarks03@gmail.com">sammymarks03@gmail.com</a></li>
-            </ul>
-        </div>
-
-    </div>
-    </details>
 </div>
 
 {% if error %}
