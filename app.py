@@ -150,12 +150,76 @@ def _compute_pool_standings():
 def get_cached_leaderboard():
     """Return pool standings, refreshing from ESPN/Sheets if the cache is stale."""
     now = time.time()
+    # In tournament-over mode the cache never expires — use whatever was last fetched
+    if SITE_MODE == "tournament-over" and _lb_cache["data"]:
+        return _lb_cache["data"]
     if _lb_cache["data"] and now - _lb_cache["ts"] < CACHE_TTL:
         return _lb_cache["data"]
     data = _compute_pool_standings()
     _lb_cache["data"] = data
     _lb_cache["ts"] = now
     return data
+
+
+def _ordinal(n):
+    return {1: "1st", 2: "2nd", 3: "3rd"}.get(n, f"{n}th")
+
+
+def _build_payout_rows(entries, pcts, total_pot, place_suffix=""):
+    """
+    Walk through entries in rank order, grouping ties by their shared pos label.
+    Tied players split the combined prize money for all slots they occupy.
+    """
+    rows = []
+    slot = 0  # index into pcts
+    i = 0     # index into entries
+    while i < len(entries) and slot < len(pcts):
+        current_pos = entries[i]["pos"]
+        # Collect all entries sharing this pos label
+        j = i + 1
+        while j < len(entries) and entries[j]["pos"] == current_pos:
+            j += 1
+        tie_count = j - i
+        # How many prize slots this group consumes (may be fewer than tie_count
+        # if the group extends beyond the paid positions)
+        slots_consumed = min(tie_count, len(pcts) - slot)
+        prize = int(sum(pcts[slot:slot + slots_consumed]) * total_pot / tie_count)
+        place_num = slot + 1
+        prefix = "T" if tie_count > 1 else ""
+        label = f"{prefix}{_ordinal(place_num)}"
+        if place_suffix:
+            label += f" {place_suffix}"
+        for k in range(i, j):
+            rows.append({"place": label, "name": entries[k]["name"], "amount": prize})
+        slot += slots_consumed
+        i = j
+    return rows
+
+
+def _compute_payout_summary(overall, r1_standings, r2_standings, total_pot):
+    """Build a structured payout summary for the results page."""
+    # Overall positions 1–5
+    overall_rows = _build_payout_rows(overall, [0.25, 0.15, 0.09, 0.05, 0.04], total_pot, "Place")
+
+    # Last place — find all entries tied at the bottom
+    if overall:
+        last_pos = overall[-1]["pos"]
+        last_group = [e for e in overall if e["pos"] == last_pos]
+        last_amount = int(total_pot * 0.04 / len(last_group))
+        last_label = "Last Place" if len(last_group) == 1 else "Last Place (Tied)"
+        for e in last_group:
+            overall_rows.append({"place": last_label, "name": e["name"], "amount": last_amount})
+
+    sections = [{"section": "Overall", "entries": overall_rows}]
+
+    round_pcts = [0.08, 0.05, 0.03, 0.02, 0.01]
+    for standings, label in [(r1_standings, "Round 1"), (r2_standings, "Round 2")]:
+        if standings:
+            sections.append({
+                "section": label,
+                "entries": _build_payout_rows(standings, round_pcts, total_pot),
+            })
+    return sections
 
 
 def get_sheet():
@@ -222,7 +286,8 @@ def _render_leaderboard():
     total_pot = _get_total_pot()
     try:
         lb = get_cached_leaderboard()
-        return render_template("leaderboard.html", **lb, error=False, total_pot=total_pot)
+        return render_template("leaderboard.html", **lb, error=False,
+                               total_pot=total_pot, tournament_over=False, payout_summary=[])
     except Exception as e:
         app.logger.error("Leaderboard error: %s\n%s", e, traceback.format_exc())
         return render_template(
@@ -234,6 +299,35 @@ def _render_leaderboard():
             last_updated=None,
             error=True,
             total_pot=total_pot,
+            tournament_over=False,
+            payout_summary=[],
+        )
+
+
+def _render_results():
+    """Render the final results page in tournament-over mode."""
+    total_pot = _get_total_pot()
+    try:
+        lb = get_cached_leaderboard()
+        payout_summary = _compute_payout_summary(
+            lb["entries"], lb["r1_standings"], lb["r2_standings"], total_pot
+        )
+        return render_template("leaderboard.html", **lb, error=False,
+                               total_pot=total_pot, tournament_over=True,
+                               payout_summary=payout_summary)
+    except Exception as e:
+        app.logger.error("Results error: %s\n%s", e, traceback.format_exc())
+        return render_template(
+            "leaderboard.html",
+            entries=[],
+            r1_standings=[],
+            r2_standings=[],
+            rounds_started={"r1": False, "r2": False, "r3": False, "r4": False},
+            last_updated=None,
+            error=True,
+            total_pot=total_pot,
+            tournament_over=True,
+            payout_summary=[],
         )
 
 
@@ -241,6 +335,8 @@ def _render_leaderboard():
 def index():
     if SITE_MODE == "tournament-live":
         return _render_leaderboard()
+    if SITE_MODE == "tournament-over":
+        return _render_results()
 
     # Check for existing submission cookie
     submission = request.cookies.get("submission")
@@ -368,6 +464,8 @@ def champions():
 def leaderboard():
     if SITE_MODE == "tournament-live":
         return _render_leaderboard()
+    if SITE_MODE == "tournament-over":
+        return _render_results()
     return render_template("leaderboard.html",
                            entries=[],
                            r1_standings=[],
@@ -375,7 +473,9 @@ def leaderboard():
                            rounds_started={"r1": False, "r2": False, "r3": False, "r4": False},
                            last_updated=None,
                            error=False,
-                           total_pot=_get_total_pot())
+                           total_pot=_get_total_pot(),
+                           tournament_over=False,
+                           payout_summary=[])
 
 
 @app.route("/lineups")
@@ -389,8 +489,8 @@ def lineups():
         except Exception:
             pass
 
-    if SITE_MODE != "tournament-live":
-        return render_template("lineups.html", entries=[], my_name=my_name)
+    if SITE_MODE not in ("tournament-live", "tournament-over"):
+        return render_template("lineups.html", entries=[], player_counts=[], my_name=my_name)
 
     try:
         entries = _get_entries_from_sheet()
@@ -398,7 +498,17 @@ def lineups():
         app.logger.error("Failed to load lineups: %s", e)
         entries = []
 
-    return render_template("lineups.html", entries=entries, my_name=my_name)
+    # Count how many entries each player appears in, preserving config.py order
+    counts = {}
+    for entry in entries:
+        for p in entry["players"]:
+            counts[p] = counts.get(p, 0) + 1
+    player_counts = [
+        {"name": p["name"], "count": counts.get(p["name"], 0)}
+        for p in PLAYERS
+    ]
+
+    return render_template("lineups.html", entries=entries, player_counts=player_counts, my_name=my_name)
 
 
 if __name__ == "__main__":

@@ -3,13 +3,70 @@
 
 {% block content %}
 <div class="page-hero">
+    {% if tournament_over %}
+    <h2>Final Results</h2>
+    {% if last_updated %}<p class="lb-updated">Final standings as of {{ last_updated }}</p>{% endif %}
+    {% else %}
     <h2>Pool Leaderboard</h2>
     {% if last_updated %}
     <p class="lb-updated">Updated {{ last_updated }} &mdash; refreshes every 60 seconds</p>
     {% else %}
     <p>Live standings during the Masters tournament.</p>
     {% endif %}
+    {% endif %}
 
+    {% if entries and not tournament_over %}
+    {# ── Rules and Payouts ────────────────────────────────────────────────────── #}
+    <details class="rules-section">
+    <summary>Rules &amp; Payouts</summary>
+    <div class="rules-content">
+
+        <div class="rules-block">
+            <h3>Scoring</h3>
+            <ul>
+                <li>Your score is the sum of your players' strokes</li>
+                <li>Lowest total score wins</li>
+                <li>Missed cut = +5 strokes for each of rounds 3 and 4</li>
+            </ul>
+        </div>
+
+        <div class="rules-block">
+            <h3>Other Rules</h3>
+            <ul>
+                <li>Player withdrawal <strong>before</strong> tee-off: you may request a replacement within budget.</li>
+                <li>Player withdrawal <strong>after</strong> tee-off: player scores +5 per round not finished.</li>
+                <li>Questions? Email <a href="mailto:sammymarks03@gmail.com">sammymarks03@gmail.com</a></li>
+            </ul>
+        </div>
+
+        <div class="rules-block">
+            <h3>Overall Payouts</h3>
+            <ul class="payout-list">
+                <li><span>1st Place</span><span>${{ "{:,}".format((total_pot * 0.25) | int) }}</span></li>
+                <li><span>2nd Place</span><span>${{ "{:,}".format((total_pot * 0.15) | int) }}</span></li>
+                <li><span>3rd Place</span><span>${{ "{:,}".format((total_pot * 0.09) | int) }}</span></li>
+                <li><span>4th Place</span><span>${{ "{:,}".format((total_pot * 0.05) | int) }}</span></li>
+                <li><span>5th Place</span><span>${{ "{:,}".format((total_pot * 0.04) | int) }}</span></li>
+                <li><span>Last Place</span><span>${{ "{:,}".format((total_pot * 0.04) | int) }}</span></li>
+            </ul>
+        </div>
+
+        <div class="rules-block">
+            <h3>Round Payouts <span class="rules-subhead">(Rounds 1 &amp; 2)</span></h3>
+            <ul class="payout-list">
+                <li><span>1st</span><span>${{ "{:,}".format((total_pot * 0.08) | int) }}</span></li>
+                <li><span>2nd</span><span>${{ "{:,}".format((total_pot * 0.05) | int) }}</span></li>
+                <li><span>3rd</span><span>${{ "{:,}".format((total_pot * 0.03) | int) }}</span></li>
+                <li><span>4th</span><span>${{ "{:,}".format((total_pot * 0.02) | int) }}</span></li>
+                <li><span>5th</span><span>${{ "{:,}".format((total_pot * 0.01) | int) }}</span></li>
+            </ul>
+            <p class="rules-note">Top 5 performers paid out each of rounds 1 and 2.</p>
+            <p class="rules-note">Total pot: <strong>${{ "{:,}".format(total_pot) }}</strong></p>
+        </div>
+
+    </div>
+</details>
+    {% endif %}
 </div>
 
 {% if error %}
@@ -25,6 +82,34 @@
 </div>
 
 {% else %}
+
+{# ── Winner & payout breakdown (tournament-over only) ────────────────────── #}
+{% if tournament_over and payout_summary %}
+<div class="results-winner">
+    <p class="results-winner-label">2026 Slot Masters Pool Champion</p>
+    <h3 class="results-winner-name">{{ entries[0].name }}</h3>
+</div>
+
+<div class="results-payouts">
+    <h3 class="results-payouts-title">Payout Breakdown</h3>
+    <div class="results-payouts-grid">
+        {% for section in payout_summary %}
+        <div class="results-payout-section">
+            <h4 class="results-payout-heading">{{ section.section }}</h4>
+            <ul class="payout-list">
+                {% for e in section.entries %}
+                <li>
+                    <span>{{ e.place }} &mdash; {{ e.name }}</span>
+                    <span>${{ "{:,}".format(e.amount) }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+    <p class="rules-note" style="text-align:center; margin-top:0.75rem;">Total pot: <strong>${{ "{:,}".format(total_pot) }}</strong></p>
+</div>
+{% endif %}
 
 {# ── Score formatting macro ───────────────────────────────────────────────── #}
 {% macro fmt(val, started) %}
@@ -383,6 +468,7 @@ function _restoreModalState() {
     }
 }
 
+{% if not tournament_over %}
 setTimeout(function() {
     _saveModalState();
     sessionStorage.setItem('_lbTab', _activeTab);
@@ -391,6 +477,7 @@ setTimeout(function() {
     sessionStorage.setItem('_lbReload', '1');
     location.reload();
 }, 60000);
+{% endif %}
 document.addEventListener('DOMContentLoaded', _restoreModalState);
 _restoreModalState();
 </script>

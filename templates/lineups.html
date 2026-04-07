@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="page-hero">
-    <h2>All Lineups</h2>
+    <h2>Lineup Details</h2>
 </div>
 
 {% if not entries %}
@@ -14,34 +14,80 @@
 </div>
 
 {% else %}
-<div class="lineups-wrap">
-    <table class="lineups-table">
-        <thead>
-            <tr>
-                <th class="lu-name">Entrant</th>
-                <th class="lu-golfer">Golfer 1</th>
-                <th class="lu-golfer">Golfer 2</th>
-                <th class="lu-golfer">Golfer 3</th>
-                <th class="lu-golfer">Golfer 4</th>
-                <th class="lu-golfer">Golfer 5</th>
-                <th class="lu-golfer">Golfer 6</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in entries %}
-            {% set is_me = my_name and entry.name.lower() == my_name %}
-            <tr class="lu-row{% if is_me %} lu-row--me{% endif %}">
-                <td class="lu-name">
-                    {{ entry.name }}
-                    {% if is_me %}<span class="lu-you">You</span>{% endif %}
-                </td>
-                {% for player in entry.players %}
-                <td class="lu-golfer">{{ player }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+{# ── Tab bar ── #}
+<div class="lb-tabs" style="max-width: none; margin-left: 0;">
+    <button class="lb-tab active" data-tab="lineups" onclick="showLuTab('lineups')">All Lineups</button>
+    <button class="lb-tab" data-tab="counts" onclick="showLuTab('counts')">Player Count</button>
 </div>
+
+{# ── All Lineups panel ── #}
+<div class="lb-panel active" id="panel-lineups">
+    <div class="lineups-wrap">
+        <table class="lineups-table">
+            <thead>
+                <tr>
+                    <th class="lu-name">Entrant</th>
+                    <th class="lu-golfer">Golfer 1</th>
+                    <th class="lu-golfer">Golfer 2</th>
+                    <th class="lu-golfer">Golfer 3</th>
+                    <th class="lu-golfer">Golfer 4</th>
+                    <th class="lu-golfer">Golfer 5</th>
+                    <th class="lu-golfer">Golfer 6</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                {% set is_me = my_name and entry.name.lower() == my_name %}
+                <tr class="lu-row{% if is_me %} lu-row--me{% endif %}">
+                    <td class="lu-name">
+                        {{ entry.name }}
+                        {% if is_me %}<span class="lu-you">You</span>{% endif %}
+                    </td>
+                    {% for player in entry.players %}
+                    <td class="lu-golfer">{{ player }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ── Player Count panel ── #}
+<div class="lb-panel" id="panel-counts">
+    <div class="lb-wrap">
+        <table class="lb-table lb-table--round">
+            <thead>
+                <tr>
+                    <th class="col-name">Player</th>
+                    <th class="col-total" style="text-align:center;">Entries</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pc in player_counts %}
+                <tr class="lb-row">
+                    <td class="col-name">{{ pc.name }}</td>
+                    <td class="col-total" style="text-align:center;">{{ pc.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if entries %}
+<script>
+function showLuTab(id) {
+    document.querySelectorAll('.lb-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.lb-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.getElementById('panel-' + id).classList.add('active');
+    document.querySelector('[data-tab="' + id + '"]').classList.add('active');
+}
+</script>
 {% endif %}
 {% endblock %}

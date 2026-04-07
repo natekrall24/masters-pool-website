@@ -5,12 +5,13 @@ Uses real live ESPN scores (whatever tournament is active) so the scoring logic
 and leaderboard UI can be previewed without Google Sheets credentials.
 
 Usage:
-    python preview_server.py
-Then open http://localhost:5001/leaderboard
+    python preview_server.py              # tournament-live mode
+    SITE_MODE=tournament-over python preview_server.py   # results mode
+Then open http://localhost:5001/
 """
 
 import os
-os.environ["SITE_MODE"] = "tournament-live"
+os.environ["SITE_MODE"] = os.environ.get("SITE_MODE", "tournament-live")
 
 import app as flask_app
 
