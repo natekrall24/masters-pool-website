@@ -281,6 +281,13 @@ a:hover {
     color: #006747;
 }
 
+.payout-pct {
+    font-size: 0.78rem;
+    color: #aaa;
+    font-weight: 400;
+    margin-left: 0.35rem;
+}
+
 .rules-note {
     font-size: 0.78rem;
     color: #888;
