@@ -509,6 +509,8 @@ def lineups():
         key=lambda x: (-x["count"], -x["salary"])
     )
 
+    entries = sorted(entries, key=lambda e: e["name"].lower())
+
     return render_template("lineups.html", entries=entries, player_counts=player_counts, my_name=my_name)
 
 

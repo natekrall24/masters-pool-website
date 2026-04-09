@@ -1154,12 +1154,13 @@ a:hover {
 
 /* ── Flash highlight on scroll-to ── */
 @keyframes lb-flash {
-    0%   { background: #fff9c4 !important; }
-    70%  { background: #fff9c4 !important; }
-    100% { background: transparent; }
+    0%   { box-shadow: inset 0 0 0 1000px rgba(255, 215, 0, 0.45); }
+    70%  { box-shadow: inset 0 0 0 1000px rgba(255, 215, 0, 0.45); }
+    100% { box-shadow: inset 0 0 0 1000px rgba(255, 215, 0, 0); }
 }
 
-.lb-row--flash td {
+.lb-row--flash td,
+.lu-row--flash td {
     animation: lb-flash 1.8s ease forwards;
 }
 
@@ -1542,4 +1543,36 @@ a:hover {
     margin: 0 0 0.5rem;
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 0.3rem;
+}
+
+/* ── Leaderboard — mobile compact ── */
+@media (max-width: 480px) {
+    .lb-table {
+        font-size: 0.75rem;
+        min-width: 0;
+    }
+
+    .lb-table thead th {
+        padding: 0.6rem 0.25rem;
+    }
+
+    .lb-row td {
+        padding: 0.55rem 0.25rem;
+    }
+
+    .col-pos  { width: 30px; }
+    .col-name { width: auto; }
+    .col-round { width: 32px; }
+    .col-total { width: 36px; }
+
+    .lb-table thead th.col-name,
+    .lb-row td.col-name {
+        padding-left: 0.4rem;
+    }
+
+    .pos-badge {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.3rem;
+        min-width: 20px;
+    }
 }

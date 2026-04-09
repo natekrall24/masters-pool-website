@@ -23,6 +23,12 @@
 
 {# ── All Lineups panel ── #}
 <div class="lb-panel active" id="panel-lineups">
+    <div class="lb-search-wrap">
+        <div class="lb-search-box">
+            <input type="text" id="lu-search" class="lb-search-input" placeholder="Find your name…" autocomplete="off">
+            <ul class="lb-search-results" id="lu-search-results"></ul>
+        </div>
+    </div>
     <div class="lineups-wrap">
         <table class="lineups-table">
             <thead>
@@ -39,7 +45,7 @@
             <tbody>
                 {% for entry in entries %}
                 {% set is_me = my_name and entry.name.lower() == my_name %}
-                <tr class="lu-row{% if is_me %} lu-row--me{% endif %}">
+                <tr class="lu-row{% if is_me %} lu-row--me{% endif %}" data-name="{{ entry.name }}">
                     <td class="lu-name">
                         {{ entry.name }}
                         {% if is_me %}<span class="lu-you">You</span>{% endif %}
@@ -56,6 +62,12 @@
 
 {# ── Player Count panel ── #}
 <div class="lb-panel" id="panel-counts">
+    <div class="lb-search-wrap">
+        <div class="lb-search-box">
+            <input type="text" id="pc-search" class="lb-search-input" placeholder="Find a golfer…" autocomplete="off">
+            <ul class="lb-search-results" id="pc-search-results"></ul>
+        </div>
+    </div>
     <div class="lb-wrap">
         <table class="lb-table lb-table--round" id="counts-table">
             <thead>
@@ -67,7 +79,7 @@
             </thead>
             <tbody id="counts-tbody">
                 {% for pc in player_counts %}
-                <tr class="lb-row" data-count="{{ pc.count }}" data-salary="{{ pc.salary }}">
+                <tr class="lb-row" data-count="{{ pc.count }}" data-salary="{{ pc.salary }}" data-name="{{ pc.name }}">
                     <td class="col-name">{{ pc.name }}</td>
                     <td class="col-total" style="text-align:center;">{{ pc.count }}</td>
                     <td class="col-total" style="text-align:center;">${{ "{:,}".format(pc.salary) }}</td>
@@ -90,6 +102,88 @@ function showLuTab(id) {
     document.getElementById('panel-' + id).classList.add('active');
     document.querySelector('[data-tab="' + id + '"]').classList.add('active');
 }
+
+// ── Lineups name search ──────────────────────────────────────────────────
+(function() {
+    var input = document.getElementById('lu-search');
+    var results = document.getElementById('lu-search-results');
+    if (!input) return;
+
+    function getRows() {
+        return Array.from(document.querySelectorAll('#panel-lineups .lu-row[data-name]'));
+    }
+
+    function showResults(q) {
+        results.innerHTML = '';
+        if (!q) { results.classList.remove('active'); return; }
+        var matches = getRows().filter(function(r) {
+            return r.dataset.name.toLowerCase().includes(q.toLowerCase());
+        });
+        if (!matches.length) { results.classList.remove('active'); return; }
+        matches.forEach(function(row) {
+            var li = document.createElement('li');
+            li.className = 'lb-search-result';
+            li.innerHTML = '<span class="lb-search-result-name">' + row.dataset.name + '</span>';
+            li.addEventListener('click', function() {
+                input.value = '';
+                results.classList.remove('active');
+                showLuTab('lineups');
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('lu-row--flash');
+                setTimeout(function() { row.classList.remove('lu-row--flash'); }, 1800);
+            });
+            results.appendChild(li);
+        });
+        results.classList.add('active');
+    }
+
+    input.addEventListener('input', function() { showResults(input.value.trim()); });
+    input.addEventListener('focus', function() { if (input.value.trim()) showResults(input.value.trim()); });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.lb-search-box')) results.classList.remove('active');
+    });
+})();
+
+// ── Player count golfer search ───────────────────────────────────────────
+(function() {
+    var input = document.getElementById('pc-search');
+    var results = document.getElementById('pc-search-results');
+    if (!input) return;
+
+    function getRows() {
+        return Array.from(document.querySelectorAll('#counts-tbody tr[data-name]'));
+    }
+
+    function showResults(q) {
+        results.innerHTML = '';
+        if (!q) { results.classList.remove('active'); return; }
+        var matches = getRows().filter(function(r) {
+            return r.dataset.name.toLowerCase().includes(q.toLowerCase());
+        });
+        if (!matches.length) { results.classList.remove('active'); return; }
+        matches.forEach(function(row) {
+            var li = document.createElement('li');
+            li.className = 'lb-search-result';
+            li.innerHTML = '<span class="lb-search-result-name">' + row.dataset.name + '</span>' +
+                           '<span class="lb-search-result-pos">' + row.dataset.count + ' entries</span>';
+            li.addEventListener('click', function() {
+                input.value = '';
+                results.classList.remove('active');
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('lb-row--flash');
+                setTimeout(function() { row.classList.remove('lb-row--flash'); }, 1800);
+            });
+            results.appendChild(li);
+        });
+        results.classList.add('active');
+    }
+
+    input.addEventListener('input', function() { showResults(input.value.trim()); });
+    input.addEventListener('focus', function() { if (input.value.trim()) showResults(input.value.trim()); });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.lb-search-box')) results.classList.remove('active');
+    });
+})();
 
 (function() {
     var sortCol = 'count';

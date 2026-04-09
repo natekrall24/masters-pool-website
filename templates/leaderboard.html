@@ -202,6 +202,7 @@
                 {%- set mc = medal_class(entry.pos) | trim -%}
                 <tr class="lb-row lb-row--clickable{% if mc %} lb-row--{{ mc }}{% endif %}"
                     data-entry='{{ entry | tojson }}'
+                    data-name="{{ entry.name }}"
                     onclick="openRoundModal(this, 'r1')">
                     <td class="col-pos"><span class="pos-badge{% if mc %} pos-badge--{{ mc }}{% endif %}">{{ entry.pos }}</span></td>
                     <td class="col-name">{{ entry.name }}</td>
@@ -231,6 +232,7 @@
                 {%- set mc = medal_class(entry.pos) | trim -%}
                 <tr class="lb-row lb-row--clickable{% if mc %} lb-row--{{ mc }}{% endif %}"
                     data-entry='{{ entry | tojson }}'
+                    data-name="{{ entry.name }}"
                     onclick="openRoundModal(this, 'r2')">
                     <td class="col-pos"><span class="pos-badge{% if mc %} pos-badge--{{ mc }}{% endif %}">{{ entry.pos }}</span></td>
                     <td class="col-name">{{ entry.name }}</td>
@@ -285,7 +287,7 @@ function showTab(id) {
     _activeTab = id;
 }
 
-// Restore active tab and rules open state only when coming from a programmatic 60s reload
+// Restore active tab, scroll position, and rules open state only when coming from a programmatic 60s reload
 (function() {
     var isReload = sessionStorage.getItem('_lbReload');
     sessionStorage.removeItem('_lbReload');
@@ -300,6 +302,11 @@ function showTab(id) {
             if (rulesEl) rulesEl.open = true;
         }
         sessionStorage.removeItem('_lbRulesOpen');
+        var scrollY = sessionStorage.getItem('_lbScrollY');
+        if (scrollY !== null) {
+            window.scrollTo(0, parseInt(scrollY, 10));
+        }
+        sessionStorage.removeItem('_lbScrollY');
     }
     sessionStorage.removeItem('_lbTab');
 })();
@@ -485,6 +492,7 @@ function _restoreModalState() {
 setTimeout(function() {
     _saveModalState();
     sessionStorage.setItem('_lbTab', _activeTab);
+    sessionStorage.setItem('_lbScrollY', window.scrollY);
     var rulesEl = document.querySelector('.rules-section');
     if (rulesEl) sessionStorage.setItem('_lbRulesOpen', rulesEl.open ? '1' : '0');
     sessionStorage.setItem('_lbReload', '1');
@@ -501,7 +509,7 @@ _restoreModalState();
     if (!input) return;
 
     function getRows() {
-        return Array.from(document.querySelectorAll('#panel-overall .lb-row[data-name]'));
+        return Array.from(document.querySelectorAll('#panel-' + _activeTab + ' .lb-row[data-name]'));
     }
 
     function showResults(q) {
@@ -521,11 +529,7 @@ _restoreModalState();
             li.addEventListener('click', function() {
                 input.value = '';
                 results.classList.remove('active');
-                // Switch to overall tab
-                showTab('overall');
-                // Scroll to row
                 row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Flash highlight
                 row.classList.add('lb-row--flash');
                 setTimeout(function() { row.classList.remove('lb-row--flash'); }, 1800);
             });
