@@ -126,9 +126,9 @@
 {% endmacro %}
 
 {# ── Medal/money class helper ─────────────────────────────────────────────── #}
-{% macro medal_class(pos_str) %}
+{% macro medal_class(pos_str, cutoff=10) %}
     {%- set n = pos_str.lstrip('T') | int -%}
-    {%- if n == 1 -%}gold{%- elif n == 2 -%}silver{%- elif n == 3 -%}bronze{%- elif n <= 8 -%}money{%- endif -%}
+    {%- if n == 1 -%}gold{%- elif n == 2 -%}silver{%- elif n == 3 -%}bronze{%- elif n <= cutoff -%}money{%- endif -%}
 {% endmacro %}
 
 {# ── Search bar ───────────────────────────────────────────────────────────── #}
@@ -201,7 +201,7 @@
             </thead>
             <tbody>
                 {% for entry in r1_standings %}
-                {%- set mc = medal_class(entry.pos) | trim -%}
+                {%- set mc = medal_class(entry.pos, 5) | trim -%}
                 <tr class="lb-row lb-row--clickable{% if mc %} lb-row--{{ mc }}{% endif %}"
                     data-entry='{{ entry | tojson }}'
                     data-name="{{ entry.name }}"
@@ -231,7 +231,7 @@
             </thead>
             <tbody>
                 {% for entry in r2_standings %}
-                {%- set mc = medal_class(entry.pos) | trim -%}
+                {%- set mc = medal_class(entry.pos, 5) | trim -%}
                 <tr class="lb-row lb-row--clickable{% if mc %} lb-row--{{ mc }}{% endif %}"
                     data-entry='{{ entry | tojson }}'
                     data-name="{{ entry.name }}"
