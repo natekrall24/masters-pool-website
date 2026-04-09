@@ -1077,6 +1077,15 @@ a:hover {
     vertical-align: middle;
 }
 
+/* Thru-hole / tee-time indicator */
+.emt-thru {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #aaa;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+}
+
 /* ── Score colours ── */
 .s-under { color: #c0392b; font-weight: 700; }
 .s-even  { color: #777;    font-weight: 400; }

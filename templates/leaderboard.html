@@ -356,10 +356,22 @@ function openEntryModal(row) {
 
     golfersWithTotal.forEach(function(g) {
         var mc = g.missed_cut ? ' <span class="emt-mc">MC</span>' : '';
+        var thruText = '';
+        if (!g.missed_cut && g.thru && g.thru !== '-') {
+            if (g.thru === 'F') {
+                thruText = ' <span class="emt-thru">F</span>';
+            } else if (/^\d+$/.test(String(g.thru)) && parseInt(g.thru, 10) > 0) {
+                // Pure integer — a real hole number
+                thruText = ' <span class="emt-thru">Thru ' + g.thru + '</span>';
+            } else {
+                // Tee time string (e.g. "2:15 PM") — show as-is, no "Thru"
+                thruText = ' <span class="emt-thru">' + g.thru + '</span>';
+            }
+        }
         var tr = document.createElement('tr');
         if (g.missed_cut) tr.classList.add('emt-row--mc');
         tr.innerHTML =
-            '<td class="emt-golfer">' + g.name + mc + '</td>' +
+            '<td class="emt-golfer">' + g.name + mc + thruText + '</td>' +
             '<td class="emt-score">' + fmtScore(g.r1, rs.r1) + '</td>' +
             '<td class="emt-score">' + fmtScore(g.r2, rs.r2) + '</td>' +
             '<td class="emt-score">' + fmtScore(g.r3, rs.r3) + '</td>' +

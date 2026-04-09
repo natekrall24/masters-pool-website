@@ -113,6 +113,7 @@ def _compute_pool_standings():
                     "r3": p["r3"],
                     "r4": p["r4"],
                     "missed_cut": p["missed_cut"],
+                    "thru": p.get("thru", "-"),
                 })
             else:
                 app.logger.warning("Player not found in ESPN data: %r", player_name)
