@@ -3,6 +3,7 @@ from config import SITE_MODE, PLAYERS, GOOGLE_SHEET_ID
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+import zoneinfo
 import os
 import json
 import time
@@ -143,7 +144,7 @@ def _compute_pool_standings():
         "r1_standings": r1_standings,
         "r2_standings": r2_standings,
         "rounds_started": rounds_started,
-        "last_updated": datetime.now().strftime("%-I:%M %p"),
+        "last_updated": datetime.now(zoneinfo.ZoneInfo("America/New_York")).strftime("%-I:%M %p ET"),
     }
 
 
