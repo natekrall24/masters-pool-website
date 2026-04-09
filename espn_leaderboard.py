@@ -60,6 +60,7 @@ def normalize_name(name: str) -> str:
     Used for fuzzy player name matching between pool picks and ESPN data.
     """
     name = name.lower().strip()
+    name = name.replace("-", "")
     for old, new in _CHAR_SUBS:
         name = name.replace(old, new)
     nfd = unicodedata.normalize("NFD", name)
