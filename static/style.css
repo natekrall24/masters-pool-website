@@ -960,6 +960,8 @@ td.lu-score {
 /* ── Clickable rows ── */
 .lb-row--clickable {
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 /* ══════════════════════════════════════════════════════════════

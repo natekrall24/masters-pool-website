@@ -401,6 +401,13 @@ function openEntryModal(row) {
 
 function closeEntryModal() {
     document.getElementById('entry-modal').classList.remove('active');
+    // Block pointer events briefly so the ghost tap after touch-close
+    // doesn't hit the row that was underneath the modal.
+    var wrap = document.querySelector('.lb-wrap');
+    if (wrap) {
+        wrap.style.pointerEvents = 'none';
+        setTimeout(function() { wrap.style.pointerEvents = ''; }, 350);
+    }
 }
 
 function openRoundModal(row, round) {
@@ -467,6 +474,11 @@ openRoundModal = function(row, round) { _setModalType(round); _origOpenRound(row
 closeEntryModal = function() {
     document.getElementById('entry-modal').classList.remove('active');
     _modalType = null;
+    var wrap = document.querySelector('.lb-wrap');
+    if (wrap) {
+        wrap.style.pointerEvents = 'none';
+        setTimeout(function() { wrap.style.pointerEvents = ''; }, 350);
+    }
 };
 
 function _saveModalState() {
