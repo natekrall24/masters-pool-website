@@ -1639,9 +1639,7 @@ td.lu-score {
         width: 34px;
     }
 
-    .emt-thru {
-        display: none;
-    }
+
 }
 
 @media (max-width: 480px) {
