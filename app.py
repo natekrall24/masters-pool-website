@@ -492,13 +492,43 @@ def lineups():
             pass
 
     if SITE_MODE not in ("tournament-live", "tournament-over"):
-        return render_template("lineups.html", entries=[], player_counts=[], my_name=my_name)
+        return render_template("lineups.html", entries=[], player_counts=[], my_name=my_name,
+                               rounds_started={"r1": False, "r2": False, "r3": False, "r4": False})
 
     try:
-        entries = _get_entries_from_sheet()
+        lb = get_cached_leaderboard()
+        scored_entries = lb["entries"]  # already has golfers + per-round scores
+        rounds_started = lb["rounds_started"]
     except Exception as e:
-        app.logger.error("Failed to load lineups: %s", e)
-        entries = []
+        app.logger.error("Failed to load lineups scores: %s", e)
+        scored_entries = []
+        rounds_started = {"r1": False, "r2": False, "r3": False, "r4": False}
+
+    started_round_keys = [r for r in ("r1", "r2", "r3", "r4") if rounds_started[r]]
+
+    # Build lineups entries with golfer scores attached
+    entries = []
+    for entry in scored_entries:
+        golfers = entry.get("golfers", [])
+        # Compute display score per golfer (sum of started rounds only)
+        enriched_golfers = []
+        for g in golfers:
+            g_score = sum(g[r] for r in started_round_keys) if started_round_keys else None
+            enriched_golfers.append({**g, "display_score": g_score})
+        team_total = entry.get("display_total")  # sum of started rounds for the team
+        entries.append({
+            "name": entry["name"],
+            "players": [g["name"] for g in golfers],
+            "golfers": enriched_golfers,
+            "team_total": team_total,
+        })
+
+    # Sort by team total (best = lowest), then alphabetically
+    any_scores = any(e["team_total"] is not None for e in entries)
+    if any_scores:
+        entries = sorted(entries, key=lambda e: (e["team_total"] if e["team_total"] is not None else 9999, e["name"].lower()))
+    else:
+        entries = sorted(entries, key=lambda e: e["name"].lower())
 
     # Count how many entries each player appears in, preserving config.py order
     counts = {}
@@ -510,9 +540,8 @@ def lineups():
         key=lambda x: (-x["count"], -x["salary"])
     )
 
-    entries = sorted(entries, key=lambda e: e["name"].lower())
-
-    return render_template("lineups.html", entries=entries, player_counts=player_counts, my_name=my_name)
+    return render_template("lineups.html", entries=entries, player_counts=player_counts, my_name=my_name,
+                           rounds_started=rounds_started)
 
 
 if __name__ == "__main__":

@@ -682,7 +682,7 @@ a:hover {
 
 /* Rows */
 .lu-row td {
-    padding: 0.75rem 0.75rem;
+    padding: 0.65rem 0.5rem;
     border-bottom: 1px solid #f0f0f0;
     vertical-align: top;
 }
@@ -710,7 +710,7 @@ a:hover {
 
 /* Name column */
 .lu-name {
-    width: 160px;
+    width: 140px;
     white-space: nowrap;
     font-weight: 700;
     color: #1a1a1a;
@@ -733,7 +733,7 @@ a:hover {
 
 /* Golfer columns */
 .lu-golfer {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #333;
     white-space: nowrap;
     border-left: 1px solid #f0f0f0;
@@ -742,6 +742,55 @@ a:hover {
 .lineups-table thead th.lu-golfer {
     border-left: 1px solid rgba(255,255,255,0.15);
 }
+
+/* Golfer name + score inside lineup cell */
+.lu-golfer-name {
+    display: block;
+}
+
+.lu-golfer-score {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-top: 2px;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+.lu-score--under {
+    color: #1a6e35;
+    background: #e6f4ec;
+}
+
+.lu-score--over {
+    color: #9b1c1c;
+    background: #fdecea;
+}
+
+.lu-score--even {
+    color: #555;
+    background: #f0f0f0;
+}
+
+.lu-score--mc {
+    color: #888;
+    background: #f5f5f5;
+}
+
+/* Team total score column */
+th.lu-score,
+td.lu-score {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    border-left: 2px solid #d0d0d0;
+    padding: 0.65rem 0.5rem;
+}
+
+.lu-team-score.lu-score--under { color: #1a6e35; }
+.lu-team-score.lu-score--over  { color: #9b1c1c; }
+.lu-team-score.lu-score--even  { color: #555; }
 
 /* ============================================================
    LEADERBOARD PAGE
@@ -1562,6 +1611,37 @@ a:hover {
 }
 
 /* ── Leaderboard — mobile compact ── */
+@media (max-width: 480px) {
+    /* Modal table — tighten up for small screens */
+    .entry-modal-overlay {
+        padding: 0.5rem;
+    }
+
+    .entry-modal-name {
+        font-size: 1rem;
+        padding-right: 1.75rem; /* keep away from close button */
+    }
+
+    .entry-modal-table thead th {
+        padding: 0.45rem 0.3rem;
+        font-size: 0.62rem;
+    }
+
+    .entry-modal-table tbody tr td,
+    .emt-totals-row td {
+        padding: 0.45rem 0.3rem !important;
+        font-size: 0.78rem;
+    }
+
+    .emt-score {
+        width: 34px;
+    }
+
+    .emt-thru {
+        display: none;
+    }
+}
+
 @media (max-width: 480px) {
     .lb-table {
         font-size: 0.75rem;

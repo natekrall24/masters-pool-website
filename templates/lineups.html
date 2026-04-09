@@ -40,6 +40,7 @@
                     <th class="lu-golfer">Golfer 4</th>
                     <th class="lu-golfer">Golfer 5</th>
                     <th class="lu-golfer">Golfer 6</th>
+                    {% if rounds_started.r1 %}<th class="lu-score">Score</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -50,9 +51,23 @@
                         {{ entry.name }}
                         {% if is_me %}<span class="lu-you">You</span>{% endif %}
                     </td>
-                    {% for player in entry.players %}
-                    <td class="lu-golfer">{{ player }}</td>
+                    {% for g in entry.golfers %}
+                    <td class="lu-golfer">
+                        <span class="lu-golfer-name">{{ g.name }}</span>
+                        {% if g.display_score is not none %}
+                        <span class="lu-golfer-score {% if g.missed_cut %}lu-score--mc{% elif g.display_score < 0 %}lu-score--under{% elif g.display_score > 0 %}lu-score--over{% else %}lu-score--even{% endif %}">
+                            {% if g.missed_cut %}MC{% elif g.display_score > 0 %}+{{ g.display_score }}{% elif g.display_score == 0 %}E{% else %}{{ g.display_score }}{% endif %}
+                        </span>
+                        {% endif %}
+                    </td>
                     {% endfor %}
+                    {% if rounds_started.r1 %}
+                    <td class="lu-score lu-team-score {% if entry.team_total is not none %}{% if entry.team_total < 0 %}lu-score--under{% elif entry.team_total > 0 %}lu-score--over{% else %}lu-score--even{% endif %}{% endif %}">
+                        {% if entry.team_total is not none %}
+                            {% if entry.team_total > 0 %}+{{ entry.team_total }}{% elif entry.team_total == 0 %}E{% else %}{{ entry.team_total }}{% endif %}
+                        {% else %}—{% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
