@@ -199,13 +199,13 @@ def _build_payout_rows(entries, pcts, total_pot, place_suffix=""):
 def _compute_payout_summary(overall, r1_standings, r2_standings, total_pot):
     """Build a structured payout summary for the results page."""
     # Overall positions 1–5
-    overall_rows = _build_payout_rows(overall, [0.25, 0.15, 0.09, 0.05, 0.04], total_pot, "Place")
+    overall_rows = _build_payout_rows(overall, [0.23, 0.14, 0.09, 0.05, 0.04, 0.03, 0.02, 0.01], total_pot, "Place")
 
     # Last place — find all entries tied at the bottom
     if overall:
         last_pos = overall[-1]["pos"]
         last_group = [e for e in overall if e["pos"] == last_pos]
-        last_amount = int(total_pot * 0.04 / len(last_group))
+        last_amount = int(total_pot * 0.01 / len(last_group))
         last_label = "Last Place" if len(last_group) == 1 else "Last Place (Tied)"
         for e in last_group:
             overall_rows.append({"place": last_label, "name": e["name"], "amount": last_amount})

@@ -814,11 +814,13 @@ a:hover {
 .lb-row--silver td { background: #f6f6f6 !important; }
 .lb-row--bronze td { background: #fef6ee !important; }
 .lb-row--money  td { background: #f2fbf5 !important; }
+.lb-row--last   td { background: #fff0f0 !important; }
 
 .lb-row--gold:hover   td { background: #fff5c0 !important; }
 .lb-row--silver:hover td { background: #ececec !important; }
 .lb-row--bronze:hover td { background: #fdeedd !important; }
 .lb-row--money:hover  td { background: #e0f5ea !important; }
+.lb-row--last:hover   td { background: #ffd9d9 !important; }
 
 /* ── Column sizing and alignment ── */
 .col-pos  { width: 52px; }
@@ -883,10 +885,18 @@ a:hover {
     padding: 0.2rem 0.5rem;
 }
 
-/* ── Position badge — money (4th–5th) ── */
+/* ── Position badge — money (4th–8th) ── */
 .pos-badge--money {
     background: #e6f4ec;
     color: #006747;
+    border-radius: 99px;
+    padding: 0.2rem 0.5rem;
+}
+
+/* ── Position badge — last place ── */
+.pos-badge--last {
+    background: #ffd9d9;
+    color: #8b0000;
     border-radius: 99px;
     padding: 0.2rem 0.5rem;
 }
