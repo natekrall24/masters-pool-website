@@ -129,6 +129,14 @@
     {%- if n == 1 -%}gold{%- elif n == 2 -%}silver{%- elif n == 3 -%}bronze{%- elif n <= 8 -%}money{%- endif -%}
 {% endmacro %}
 
+{# ── Search bar ───────────────────────────────────────────────────────────── #}
+<div class="lb-search-wrap">
+    <div class="lb-search-box">
+        <input type="text" id="lb-search" class="lb-search-input" placeholder="Find your name…" autocomplete="off">
+        <ul class="lb-search-results" id="lb-search-results"></ul>
+    </div>
+</div>
+
 {# ── Tab bar ──────────────────────────────────────────────────────────────── #}
 <div class="lb-tabs">
     <button class="lb-tab active" data-tab="overall" onclick="showTab('overall')">Overall</button>
@@ -161,6 +169,7 @@
                 {%- set is_last = (entry.pos == (entries | last).pos) and not mc -%}
                 <tr class="lb-row lb-row--clickable{% if mc %} lb-row--{{ mc }}{% elif is_last %} lb-row--last{% endif %}"
                     data-entry='{{ entry | tojson }}'
+                    data-name="{{ entry.name }}"
                     onclick="openEntryModal(this)">
                     <td class="col-pos"><span class="pos-badge{% if mc %} pos-badge--{{ mc }}{% elif is_last %} pos-badge--last{% endif %}">{{ entry.pos }}</span></td>
                     <td class="col-name">{{ entry.name }}</td>
@@ -484,6 +493,53 @@ setTimeout(function() {
 {% endif %}
 document.addEventListener('DOMContentLoaded', _restoreModalState);
 _restoreModalState();
+
+// ── Name search ──────────────────────────────────────────────────────────
+(function() {
+    var input = document.getElementById('lb-search');
+    var results = document.getElementById('lb-search-results');
+    if (!input) return;
+
+    function getRows() {
+        return Array.from(document.querySelectorAll('#panel-overall .lb-row[data-name]'));
+    }
+
+    function showResults(q) {
+        results.innerHTML = '';
+        if (!q) { results.classList.remove('active'); return; }
+        var rows = getRows();
+        var matches = rows.filter(function(r) {
+            return r.dataset.name.toLowerCase().includes(q.toLowerCase());
+        });
+        if (!matches.length) { results.classList.remove('active'); return; }
+        matches.forEach(function(row) {
+            var entry = JSON.parse(row.dataset.entry);
+            var li = document.createElement('li');
+            li.className = 'lb-search-result';
+            li.innerHTML = '<span class="lb-search-result-name">' + entry.name + '</span>' +
+                           '<span class="lb-search-result-pos">' + entry.pos + '</span>';
+            li.addEventListener('click', function() {
+                input.value = '';
+                results.classList.remove('active');
+                // Switch to overall tab
+                showTab('overall');
+                // Scroll to row
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Flash highlight
+                row.classList.add('lb-row--flash');
+                setTimeout(function() { row.classList.remove('lb-row--flash'); }, 1800);
+            });
+            results.appendChild(li);
+        });
+        results.classList.add('active');
+    }
+
+    input.addEventListener('input', function() { showResults(input.value.trim()); });
+    input.addEventListener('focus', function() { if (input.value.trim()) showResults(input.value.trim()); });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.lb-search-box')) results.classList.remove('active');
+    });
+})();
 </script>
 {% endif %}
 {% endblock %}

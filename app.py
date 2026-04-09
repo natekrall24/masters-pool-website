@@ -66,7 +66,7 @@ def _rank_by(entries, sort_key):
     Return a new list of dicts (shallow copies) sorted by sort_key ascending,
     with golf-style 'pos' assigned.  Original dicts are not modified.
     """
-    ranked = sorted((dict(e) for e in entries), key=lambda e: e[sort_key])
+    ranked = sorted((dict(e) for e in entries), key=lambda e: (e[sort_key], e["name"].lower()))
     i = 0
     while i < len(ranked):
         j = i
@@ -504,10 +504,10 @@ def lineups():
     for entry in entries:
         for p in entry["players"]:
             counts[p] = counts.get(p, 0) + 1
-    player_counts = [
-        {"name": p["name"], "count": counts.get(p["name"], 0)}
-        for p in PLAYERS
-    ]
+    player_counts = sorted(
+        [{"name": p["name"], "salary": p["salary"], "count": counts.get(p["name"], 0)} for p in PLAYERS],
+        key=lambda x: (-x["count"], -x["salary"])
+    )
 
     return render_template("lineups.html", entries=entries, player_counts=player_counts, my_name=my_name)
 

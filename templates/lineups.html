@@ -57,18 +57,20 @@
 {# ── Player Count panel ── #}
 <div class="lb-panel" id="panel-counts">
     <div class="lb-wrap">
-        <table class="lb-table lb-table--round">
+        <table class="lb-table lb-table--round" id="counts-table">
             <thead>
                 <tr>
                     <th class="col-name">Player</th>
-                    <th class="col-total" style="text-align:center;">Entries</th>
+                    <th class="col-total counts-sortable" data-col="count" style="text-align:center;cursor:pointer;">Entries <span class="sort-arrow">▼</span></th>
+                    <th class="col-total counts-sortable" data-col="salary" style="text-align:center;cursor:pointer;">Cost <span class="sort-arrow"></span></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="counts-tbody">
                 {% for pc in player_counts %}
-                <tr class="lb-row">
+                <tr class="lb-row" data-count="{{ pc.count }}" data-salary="{{ pc.salary }}">
                     <td class="col-name">{{ pc.name }}</td>
                     <td class="col-total" style="text-align:center;">{{ pc.count }}</td>
+                    <td class="col-total" style="text-align:center;">${{ "{:,}".format(pc.salary) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -88,6 +90,24 @@ function showLuTab(id) {
     document.getElementById('panel-' + id).classList.add('active');
     document.querySelector('[data-tab="' + id + '"]').classList.add('active');
 }
+
+(function() {
+    var sortCol = 'count';
+    var headers = document.querySelectorAll('.counts-sortable');
+    headers.forEach(function(th) {
+        th.addEventListener('click', function() {
+            sortCol = th.dataset.col;
+            headers.forEach(function(h) { h.querySelector('.sort-arrow').textContent = ''; });
+            th.querySelector('.sort-arrow').textContent = '▼';
+            var tbody = document.getElementById('counts-tbody');
+            var rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort(function(a, b) {
+                return parseInt(b.dataset[sortCol]) - parseInt(a.dataset[sortCol]);
+            });
+            rows.forEach(function(r) { tbody.appendChild(r); });
+        });
+    });
+})();
 </script>
 {% endif %}
 {% endblock %}
