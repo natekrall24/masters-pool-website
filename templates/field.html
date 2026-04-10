@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Field — 2026 Slot Masters Pool{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    {% if tournament_over %}
+    <h2>Tournament Results</h2>
+    {% if last_updated %}<p class="lb-updated">Final standings as of {{ last_updated }}</p>{% endif %}
+    {% else %}
+    <h2>Field Standings</h2>
+    {% if last_updated %}
+    <p class="lb-updated">Updated {{ last_updated }} &mdash; refreshes every 60 seconds</p>
+    {% endif %}
+    {% endif %}
+</div>
+
+{# ── Score formatting macros ───────────────────────────────────────────────── #}
+{% macro fmt(val, started) %}
+    {%- if not started or val is none -%}<span class="s-dash">--</span>
+    {%- elif val == 0 -%}<span class="s-even">E</span>
+    {%- elif val > 0 -%}<span class="s-over">+{{ val }}</span>
+    {%- else -%}<span class="s-under">{{ val }}</span>
+    {%- endif -%}
+{% endmacro %}
+
+{# Format ESPN's raw today string (+1, E, -3, -) #}
+{% macro fmt_today(val) %}
+    {%- if not val or val in ("-", "--") -%}<span class="s-dash">--</span>
+    {%- elif val == "E" -%}<span class="s-even">E</span>
+    {%- elif val.startswith("+") -%}<span class="s-over">{{ val }}</span>
+    {%- elif val.startswith("-") -%}<span class="s-under">{{ val }}</span>
+    {%- else -%}<span class="s-dash">{{ val }}</span>
+    {%- endif -%}
+{% endmacro %}
+
+{% if not field_players %}
+<p class="placeholder-text">Field standings will be available once the Masters begins.</p>
+{% else %}
+
+<div class="field-wrap">
+    <table class="lb-table field-table">
+        <thead>
+            <tr>
+                <th class="col-pos">Pos</th>
+                <th class="col-name">Player</th>
+                <th class="col-total">Score</th>
+                <th class="col-round">Today</th>
+                <th class="col-round">Thru</th>
+                <th class="col-round">R1</th>
+                <th class="col-round">R2</th>
+                {% if rounds_started.r3 %}<th class="col-round">R3</th>{% endif %}
+                {% if rounds_started.r4 %}<th class="col-round">R4</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% set col_count = 7 + (1 if rounds_started.r3 else 0) + (1 if rounds_started.r4 else 0) %}
+            {% for p in field_players %}
+            {% if p._is_cut_row %}
+            <tr class="field-cut-row">
+                <td colspan="{{ col_count }}" class="field-cut-cell">
+                    Projected Cut
+                    {%- if p.cut_str == "E" %} <span class="s-even">E</span>
+                    {%- elif p.cut_str.startswith("+") %} <span class="s-over">{{ p.cut_str }}</span>
+                    {%- else %} <span class="s-under">{{ p.cut_str }}</span>
+                    {%- endif %}
+                </td>
+            </tr>
+            {% else %}
+            {% set is_mc = p.missed_cut %}
+            <tr class="lb-row{% if is_mc %} field-row--mc{% endif %}">
+                <td class="col-pos">
+                    <span class="pos-badge{% if p.pos == 'MC' %} pos-badge--mc{% endif %}">{{ p.pos }}</span>
+                </td>
+                <td class="col-name">{{ p.name }}</td>
+                <td class="col-total">
+                    {% if is_mc %}<span class="s-dash">CUT</span>
+                    {% else %}{{ fmt(p.display_total, rounds_started.r1) }}{% endif %}
+                </td>
+                <td class="col-round">
+                    {% if is_mc %}<span class="s-dash">--</span>
+                    {% else %}{{ fmt_today(p.today) }}{% endif %}
+                </td>
+                <td class="col-round field-thru">
+                    {% if is_mc %}<span class="s-dash">--</span>
+                    {% elif p.thru == "F" %}<span class="field-thru--f">F</span>
+                    {% elif p.thru and p.thru != "-" %}{{ p.thru }}
+                    {% else %}<span class="s-dash">--</span>{% endif %}
+                </td>
+                <td class="col-round">{{ fmt(p.r1, rounds_started.r1) }}</td>
+                <td class="col-round">{{ fmt(p.r2, rounds_started.r2) }}</td>
+                {% if rounds_started.r3 %}<td class="col-round">{{ fmt(p.r3, not is_mc and rounds_started.r3) }}</td>{% endif %}
+                {% if rounds_started.r4 %}<td class="col-round">{{ fmt(p.r4, not is_mc and rounds_started.r4) }}</td>{% endif %}
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if field_players and not tournament_over %}
+<script>
+setTimeout(function() {
+    sessionStorage.setItem('_lbReload', '1');
+    location.reload();
+}, 60000);
+</script>
+{% endif %}
+{% endblock %}

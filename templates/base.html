@@ -18,6 +18,7 @@
             <nav class="site-nav">
                 <a href="/">Home</a>
                 <a href="/lineups">Lineups</a>
+                {% if SITE_MODE in ["tournament-live", "tournament-over"] %}<a href="/field">Field</a>{% endif %}
                 {% if SITE_MODE not in ["tournament-live", "tournament-over"] %}<a href="/leaderboard">Leaderboard</a>{% endif %}
                 <a href="/champions">Champions</a>
             </nav>

@@ -35,6 +35,7 @@ Scoring rules (replicating the spreadsheet formulas):
              = 0                otherwise
 """
 
+import re
 import unicodedata
 import requests
 from bs4 import BeautifulSoup
@@ -205,7 +206,7 @@ def parse_player_scores(rows: list[list[str]]) -> list[dict]:
         r3_str    = g(ci_r3)
         r4_str    = g(ci_r4)
 
-        if not name or name.upper() in ("PLAYER", ""):
+        if not name or name.upper() in ("PLAYER", "") or name == "--":
             continue
 
         score      = _to_par(score_str)
@@ -305,10 +306,24 @@ def parse_player_scores(rows: list[list[str]]) -> list[dict]:
     return results
 
 
-def get_player_scores() -> list[dict]:
-    """Fetch ESPN data and return computed player scores."""
+def parse_projected_cut(rows: list[list[str]]) -> str | None:
+    """
+    Find the projected/official cut line row (a single spanning cell like
+    'Projected Cut +3') and return just the score string ('+3', 'E', '-1'),
+    or None if not found.
+    """
+    for row in rows:
+        if len(row) == 1 and "cut" in row[0].lower():
+            m = re.search(r'([-+]\d+|E)\s*$', row[0].strip())
+            if m:
+                return m.group(1)
+    return None
+
+
+def get_player_scores() -> tuple[list[dict], str | None]:
+    """Fetch ESPN data and return (computed player scores, projected cut string)."""
     rows = fetch_raw_rows()
-    return parse_player_scores(rows)
+    return parse_player_scores(rows), parse_projected_cut(rows)
 
 
 # ---------------------------------------------------------------------------

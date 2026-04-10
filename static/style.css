@@ -1284,6 +1284,62 @@ td.lu-score {
     white-space: nowrap;
 }
 
+/* ── Field standings table ── */
+.field-wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.field-table {
+    min-width: 560px;
+}
+
+.field-table .col-name {
+    width: 200px;
+}
+
+.field-row--mc {
+    opacity: 0.65;
+}
+
+.field-row--mc td {
+    background: #fafafa;
+}
+
+.pos-badge--mc {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.field-thru {
+    color: #555;
+    font-size: 0.82rem;
+}
+
+.field-thru--f {
+    color: #006747;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.field-cut-row td {
+    background: #fffbea;
+    border-top: 1px dashed #d4af37;
+    border-bottom: 1px dashed #d4af37;
+}
+
+.field-cut-cell {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #7a6010;
+    padding: 0.45rem 0.75rem;
+}
+
 /* ============================================================
    FOOTER
 ============================================================ */

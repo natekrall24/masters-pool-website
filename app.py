@@ -81,7 +81,7 @@ def _rank_by(entries, sort_key):
 
 def _compute_pool_standings():
     """Fetch live ESPN scores and sheet entries, return ranked pool standings."""
-    player_scores = get_player_scores()
+    player_scores, projected_cut = get_player_scores()
     score_map = {normalize_name(p["name"]): p for p in player_scores}
 
     # Determine which rounds have started, excluding MC penalty (+5) from the check
@@ -140,11 +140,85 @@ def _compute_pool_standings():
     r1_standings = _rank_by(results, "r1") if rounds_started["r1"] else []
     r2_standings = _rank_by(results, "r2") if rounds_started["r2"] else []
 
+    # ── Field standings (mirrors ESPN tournament leaderboard) ────────────────
+    field_list = []
+    for p in player_scores:
+        if p["missed_cut"]:
+            # Show actual 2-round score only (no pool +5 penalties)
+            display_total = p["r1"] + p["r2"]
+            r3_field = None
+            r4_field = None
+        else:
+            display_total = sum(p[r] for r in started_round_keys) if started_round_keys else 0
+            r3_field = p["r3"] if rounds_started["r3"] else None
+            r4_field = p["r4"] if rounds_started["r4"] else None
+        field_list.append({
+            "name":       p["name"],
+            "display_total": display_total,
+            "r1": p["r1"],
+            "r2": p["r2"],
+            "r3": r3_field,
+            "r4": r4_field,
+            "today":      p["today"],
+            "thru":       p["thru"],
+            "missed_cut": p["missed_cut"],
+            "r1_posted":  p["r1_posted"],
+            "r2_posted":  p["r2_posted"],
+            "r3_posted":  p["r3_posted"],
+            "r4_posted":  p["r4_posted"],
+        })
+
+    non_mc_field = sorted(
+        [p for p in field_list if not p["missed_cut"]],
+        key=lambda p: (p["display_total"], p["name"].lower())
+    )
+    mc_field = sorted(
+        [p for p in field_list if p["missed_cut"]],
+        key=lambda p: (p["display_total"], p["name"].lower())
+    )
+
+    # Assign positions (golf-style ties)
+    i = 0
+    while i < len(non_mc_field):
+        j = i
+        while j < len(non_mc_field) and non_mc_field[j]["display_total"] == non_mc_field[i]["display_total"]:
+            j += 1
+        label = f"T{i + 1}" if (j - i) > 1 else str(i + 1)
+        for k in range(i, j):
+            non_mc_field[k]["pos"] = label
+        i = j
+    for p in mc_field:
+        p["pos"] = "MC"
+
+    # Insert the projected cut divider if ESPN has that row.
+    # Split non-MC players into those making/missing the projected cut,
+    # then append any officially-cut players at the bottom.
+    if projected_cut is not None:
+        try:
+            cut_val = 0 if projected_cut == "E" else int(projected_cut)
+        except ValueError:
+            cut_val = None
+
+        if cut_val is not None:
+            making_cut  = [p for p in non_mc_field if p["display_total"] <= cut_val]
+            bubble       = [p for p in non_mc_field if p["display_total"] >  cut_val]
+            field_players = (
+                making_cut
+                + [{"_is_cut_row": True, "cut_str": projected_cut}]
+                + bubble
+                + mc_field
+            )
+        else:
+            field_players = non_mc_field + mc_field
+    else:
+        field_players = non_mc_field + mc_field
+
     return {
         "entries": overall,
         "r1_standings": r1_standings,
         "r2_standings": r2_standings,
         "rounds_started": rounds_started,
+        "field_players": field_players,
         "last_updated": datetime.now(zoneinfo.ZoneInfo("America/New_York")).strftime("%-I:%M %p ET"),
     }
 
@@ -478,6 +552,30 @@ def leaderboard():
                            total_pot=_get_total_pot(),
                            tournament_over=False,
                            payout_summary=[])
+
+
+@app.route("/field")
+def field():
+    if SITE_MODE not in ("tournament-live", "tournament-over"):
+        return redirect(url_for("index"))
+    try:
+        lb = get_cached_leaderboard()
+        return render_template(
+            "field.html",
+            field_players=lb["field_players"],
+            rounds_started=lb["rounds_started"],
+            last_updated=lb["last_updated"],
+            tournament_over=(SITE_MODE == "tournament-over"),
+        )
+    except Exception as e:
+        app.logger.error("Field error: %s\n%s", e, traceback.format_exc())
+        return render_template(
+            "field.html",
+            field_players=[],
+            rounds_started={"r1": False, "r2": False, "r3": False, "r4": False},
+            last_updated=None,
+            tournament_over=False,
+        )
 
 
 @app.route("/lineups")
