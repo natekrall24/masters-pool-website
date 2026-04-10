@@ -226,12 +226,13 @@ def parse_player_scores(rows: list[list[str]]) -> list[dict]:
         # ── R2 ────────────────────────────────────────────────────────────
         if r2_strokes is not None:
             r2 = r2_strokes - PAR
-        elif today_str in ("-", "E", "--") or today is None:
-            r2 = 0
-        elif score_str in ("E", "--", "-") or score is None:
-            r2 = 0
-        else:
+        elif r1_strokes is not None and score is not None:
+            # R1 is posted; best estimate for live/completed-but-unposted R2
+            # is cumulative score minus r1. This is more reliable than TODAY,
+            # which ESPN sometimes shows as stale "E" while SCORE is already updated.
             r2 = score - r1
+        else:
+            r2 = 0
 
         pass1.append({
             "name": name, "score_str": score_str, "today_str": today_str,
