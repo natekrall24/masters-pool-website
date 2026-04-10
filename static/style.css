@@ -281,11 +281,11 @@ a:hover {
     color: #006747;
 }
 
-.payout-pct {
-    font-size: 0.78rem;
-    color: #aaa;
+.payout-list .payout-pct {
+    font-size: 0.7rem;
+    color: #aaa !important;
     font-weight: 400;
-    margin-left: 0.35rem;
+    margin-right: 0.35rem;
 }
 
 .rules-note {
@@ -293,6 +293,18 @@ a:hover {
     color: #888;
     font-style: italic;
     margin-top: 0.4rem;
+}
+
+.payouts-3col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem 2rem;
+}
+
+@media (max-width: 600px) {
+    .payouts-3col {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ============================================================

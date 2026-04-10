@@ -254,7 +254,7 @@ def _build_payout_rows(entries, pcts, total_pot, place_suffix=""):
         # How many prize slots this group consumes (may be fewer than tie_count
         # if the group extends beyond the paid positions)
         slots_consumed = min(tie_count, len(pcts) - slot)
-        prize = int(sum(pcts[slot:slot + slots_consumed]) * total_pot / tie_count)
+        prize = round(sum(pcts[slot:slot + slots_consumed]) * total_pot / tie_count, 2)
         place_num = slot + 1
         prefix = "T" if tie_count > 1 else ""
         label = f"{prefix}{_ordinal(place_num)}"
@@ -352,13 +352,30 @@ Good luck!
         app.logger.error(f"Failed to send confirmation email: {e}\n{traceback.format_exc()}")
 
 
+_ROUND_PCTS = [0.075, 0.04, 0.025, 0.015, 0.01]
+
+
+def _round_payout_rows(lb, total_pot):
+    """
+    Return (r1_rows, r2_rows) — each is a list of {place, name, amount} dicts
+    once that round is complete, or None while the round is still in progress.
+    R1 is complete once R2 has started; R2 is complete once R3 has started.
+    """
+    rs = lb["rounds_started"]
+    r1 = _build_payout_rows(lb["r1_standings"], _ROUND_PCTS, total_pot) if rs["r2"] and lb["r1_standings"] else None
+    r2 = _build_payout_rows(lb["r2_standings"], _ROUND_PCTS, total_pot) if rs["r3"] and lb["r2_standings"] else None
+    return r1, r2
+
+
 def _render_leaderboard():
     """Render the pool leaderboard in tournament-live mode."""
     total_pot = _get_total_pot()
     try:
         lb = get_cached_leaderboard()
+        r1_payout_rows, r2_payout_rows = _round_payout_rows(lb, total_pot)
         return render_template("leaderboard.html", **lb, error=False,
-                               total_pot=total_pot, tournament_over=False, payout_summary=[])
+                               total_pot=total_pot, tournament_over=False, payout_summary=[],
+                               r1_payout_rows=r1_payout_rows, r2_payout_rows=r2_payout_rows)
     except Exception as e:
         app.logger.error("Leaderboard error: %s\n%s", e, traceback.format_exc())
         return render_template(
@@ -372,6 +389,8 @@ def _render_leaderboard():
             total_pot=total_pot,
             tournament_over=False,
             payout_summary=[],
+            r1_payout_rows=None,
+            r2_payout_rows=None,
         )
 
 
@@ -383,9 +402,11 @@ def _render_results():
         payout_summary = _compute_payout_summary(
             lb["entries"], lb["r1_standings"], lb["r2_standings"], total_pot
         )
+        r1_payout_rows, r2_payout_rows = _round_payout_rows(lb, total_pot)
         return render_template("leaderboard.html", **lb, error=False,
                                total_pot=total_pot, tournament_over=True,
-                               payout_summary=payout_summary)
+                               payout_summary=payout_summary,
+                               r1_payout_rows=r1_payout_rows, r2_payout_rows=r2_payout_rows)
     except Exception as e:
         app.logger.error("Results error: %s\n%s", e, traceback.format_exc())
         return render_template(
@@ -399,6 +420,8 @@ def _render_results():
             total_pot=total_pot,
             tournament_over=True,
             payout_summary=[],
+            r1_payout_rows=None,
+            r2_payout_rows=None,
         )
 
 

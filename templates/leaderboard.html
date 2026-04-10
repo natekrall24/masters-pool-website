@@ -39,34 +39,71 @@
             </ul>
         </div>
 
-        <div class="rules-block">
-            <h3>Overall Payouts</h3>
-            <ul class="payout-list">
-                <li><span>1st Place</span><span>${{ "{:,}".format((total_pot * 0.23) | int) }}</span></li>
-                <li><span>2nd Place</span><span>${{ "{:,}".format((total_pot * 0.14) | int) }}</span></li>
-                <li><span>3rd Place</span><span>${{ "{:,}".format((total_pot * 0.09) | int) }}</span></li>
-                <li><span>4th Place</span><span>${{ "{:,}".format((total_pot * 0.06) | int) }}</span></li>
-                <li><span>5th Place</span><span>${{ "{:,}".format((total_pot * 0.04) | int) }}</span></li>
-                <li><span>6th Place</span><span>${{ "{:,}".format((total_pot * 0.03) | int) }}</span></li>
-                <li><span>7th Place</span><span>${{ "{:,}".format((total_pot * 0.025) | int) }}</span></li>
-                <li><span>8th Place</span><span>${{ "{:,}".format((total_pot * 0.02) | int) }}</span></li>
-                <li><span>9th Place</span><span>${{ "{:,}".format((total_pot * 0.015) | int) }}</span></li>
-                <li><span>10th Place</span><span>${{ "{:,}".format((total_pot * 0.01) | int) }}</span></li>
-                <li><span>💀 Last Place</span><span>${{ "{:,}".format((total_pot * 0.01) | int) }}</span></li>
-            </ul>
-        </div>
+        <div class="rules-block rules-block--full">
+            <div class="payouts-3col">
 
-        <div class="rules-block">
-            <h3>Round Payouts <span class="rules-subhead">(Rounds 1 &amp; 2)</span></h3>
-            <ul class="payout-list">
-                <li><span>1st</span><span>${{ "{:,}".format((total_pot * 0.075) | int) }}</span></li>
-                <li><span>2nd</span><span>${{ "{:,}".format((total_pot * 0.04) | int) }}</span></li>
-                <li><span>3rd</span><span>${{ "{:,}".format((total_pot * 0.025) | int) }}</span></li>
-                <li><span>4th</span><span>${{ "{:,}".format((total_pot * 0.015) | int) }}</span></li>
-                <li><span>5th</span><span>${{ "{:,}".format((total_pot * 0.01) | int) }}</span></li>
-            </ul>
-            <p class="rules-note">Top 5 performers paid out each of rounds 1 and 2.</p>
-            <p class="rules-note">Total pot: <strong>${{ "{:,}".format(total_pot) }}</strong></p>
+                {# ── Overall ── #}
+                <div>
+                    <h3>Overall Payouts</h3>
+                    <ul class="payout-list">
+                        <li><span>1st Place</span><span><span class="payout-pct">(23%)</span>${{ "{:,}".format((total_pot * 0.23) | int) }}</span></li>
+                        <li><span>2nd Place</span><span><span class="payout-pct">(14%)</span>${{ "{:,}".format((total_pot * 0.14) | int) }}</span></li>
+                        <li><span>3rd Place</span><span><span class="payout-pct">(9%)</span>${{ "{:,}".format((total_pot * 0.09) | int) }}</span></li>
+                        <li><span>4th Place</span><span><span class="payout-pct">(6%)</span>${{ "{:,}".format((total_pot * 0.06) | int) }}</span></li>
+                        <li><span>5th Place</span><span><span class="payout-pct">(4%)</span>${{ "{:,}".format((total_pot * 0.04) | int) }}</span></li>
+                        <li><span>6th Place</span><span><span class="payout-pct">(3%)</span>${{ "{:,}".format((total_pot * 0.03) | int) }}</span></li>
+                        <li><span>7th Place</span><span><span class="payout-pct">(2.5%)</span>${{ "{:,}".format((total_pot * 0.025) | int) }}</span></li>
+                        <li><span>8th Place</span><span><span class="payout-pct">(2%)</span>${{ "{:,}".format((total_pot * 0.02) | int) }}</span></li>
+                        <li><span>9th Place</span><span><span class="payout-pct">(1.5%)</span>${{ "{:,}".format((total_pot * 0.015) | int) }}</span></li>
+                        <li><span>10th Place</span><span><span class="payout-pct">(1%)</span>${{ "{:,}".format((total_pot * 0.01) | int) }}</span></li>
+                        <li><span>💀 Last Place</span><span><span class="payout-pct">(1%)</span>${{ "{:,}".format((total_pot * 0.01) | int) }}</span></li>
+                    </ul>
+                </div>
+
+                {# ── Round 1 ── #}
+                <div>
+                    <h3>Round 1 Payouts</h3>
+                    {% if r1_payout_rows %}
+                    <ul class="payout-list">
+                        {% for row in r1_payout_rows %}
+                        <li><span>{{ row.place }} &mdash; {{ row.name }}</span><span><span class="payout-pct">({{ "%.4g" | format(row.amount / total_pot * 100) }}%)</span>${{ "{:,.2f}".format(row.amount) if row.amount != row.amount | int else "{:,}".format(row.amount | int) }}</span></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <ul class="payout-list">
+                        <li><span>1st</span><span><span class="payout-pct">(7.5%)</span>${{ "{:,}".format((total_pot * 0.075) | int) }}</span></li>
+                        <li><span>2nd</span><span><span class="payout-pct">(4%)</span>${{ "{:,}".format((total_pot * 0.04) | int) }}</span></li>
+                        <li><span>3rd</span><span><span class="payout-pct">(2.5%)</span>${{ "{:,}".format((total_pot * 0.025) | int) }}</span></li>
+                        <li><span>4th</span><span><span class="payout-pct">(1.5%)</span>${{ "{:,}".format((total_pot * 0.015) | int) }}</span></li>
+                        <li><span>5th</span><span><span class="payout-pct">(1%)</span>${{ "{:,}".format((total_pot * 0.01) | int) }}</span></li>
+                    </ul>
+                    <p class="rules-note">Winners posted after Round 1 ends.</p>
+                    {% endif %}
+                </div>
+
+                {# ── Round 2 ── #}
+                <div>
+                    <h3>Round 2 Payouts</h3>
+                    {% if r2_payout_rows %}
+                    <ul class="payout-list">
+                        {% for row in r2_payout_rows %}
+                        <li><span>{{ row.place }} &mdash; {{ row.name }}</span><span><span class="payout-pct">({{ "%.4g" | format(row.amount / total_pot * 100) }}%)</span>${{ "{:,.2f}".format(row.amount) if row.amount != row.amount | int else "{:,}".format(row.amount | int) }}</span></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <ul class="payout-list">
+                        <li><span>1st</span><span><span class="payout-pct">(7.5%)</span>${{ "{:,}".format((total_pot * 0.075) | int) }}</span></li>
+                        <li><span>2nd</span><span><span class="payout-pct">(4%)</span>${{ "{:,}".format((total_pot * 0.04) | int) }}</span></li>
+                        <li><span>3rd</span><span><span class="payout-pct">(2.5%)</span>${{ "{:,}".format((total_pot * 0.025) | int) }}</span></li>
+                        <li><span>4th</span><span><span class="payout-pct">(1.5%)</span>${{ "{:,}".format((total_pot * 0.015) | int) }}</span></li>
+                        <li><span>5th</span><span><span class="payout-pct">(1%)</span>${{ "{:,}".format((total_pot * 0.01) | int) }}</span></li>
+                    </ul>
+                    <p class="rules-note">Winners posted after Round 2 ends.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+            <p class="rules-note" style="margin-top:0.75rem;">Total pot: <strong>${{ "{:,}".format(total_pot) }}</strong></p>
         </div>
 
     </div>
@@ -105,7 +142,7 @@
                 {% for e in section.entries %}
                 <li>
                     <span>{{ e.place }} &mdash; {{ e.name }}</span>
-                    <span>${{ "{:,}".format(e.amount) }}</span>
+                    <span>${{ "{:,.2f}".format(e.amount) if e.amount != e.amount | int else "{:,}".format(e.amount | int) }}</span>
                 </li>
                 {% endfor %}
             </ul>
