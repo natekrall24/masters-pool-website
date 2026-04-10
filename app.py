@@ -168,16 +168,11 @@ def _compute_pool_standings():
             "r4_posted":  p["r4_posted"],
         })
 
-    non_mc_field = sorted(
-        [p for p in field_list if not p["missed_cut"]],
-        key=lambda p: (p["display_total"], p["name"].lower())
-    )
-    mc_field = sorted(
-        [p for p in field_list if p["missed_cut"]],
-        key=lambda p: (p["display_total"], p["name"].lower())
-    )
+    # Preserve ESPN's ordering — do not re-sort
+    non_mc_field = [p for p in field_list if not p["missed_cut"]]
+    mc_field     = [p for p in field_list if p["missed_cut"]]
 
-    # Assign positions (golf-style ties)
+    # Assign positions using ESPN order (golf-style ties based on display_total)
     i = 0
     while i < len(non_mc_field):
         j = i

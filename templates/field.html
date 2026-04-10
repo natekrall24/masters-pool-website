@@ -37,6 +37,13 @@
 <p class="placeholder-text">Field standings will be available once the Masters begins.</p>
 {% else %}
 
+<div class="lb-search-wrap">
+    <div class="lb-search-box">
+        <input type="text" id="field-search" class="lb-search-input" placeholder="Find a golfer…" autocomplete="off">
+        <ul class="lb-search-results" id="field-search-results"></ul>
+    </div>
+</div>
+
 <div class="field-wrap">
     <table class="lb-table field-table">
         <thead>
@@ -67,7 +74,7 @@
             </tr>
             {% else %}
             {% set is_mc = p.missed_cut %}
-            <tr class="lb-row{% if is_mc %} field-row--mc{% endif %}">
+            <tr class="lb-row{% if is_mc %} field-row--mc{% endif %}" data-name="{{ p.name }}">
                 <td class="col-pos">
                     <span class="pos-badge{% if p.pos == 'MC' %} pos-badge--mc{% endif %}">{{ p.pos }}</span>
                 </td>
@@ -101,12 +108,52 @@
 {% endblock %}
 
 {% block extra_scripts %}
-{% if field_players and not tournament_over %}
+{% if field_players %}
 <script>
+(function() {
+    var input   = document.getElementById('field-search');
+    var results = document.getElementById('field-search-results');
+
+    function showResults(q) {
+        results.innerHTML = '';
+        if (!q) { results.classList.remove('active'); return; }
+        var rows = Array.from(document.querySelectorAll('.field-table .lb-row[data-name]'));
+        var matches = rows.filter(function(r) {
+            return r.dataset.name.toLowerCase().includes(q.toLowerCase());
+        });
+        if (!matches.length) { results.classList.remove('active'); return; }
+        matches.forEach(function(row) {
+            var pos  = row.querySelector('.pos-badge') ? row.querySelector('.pos-badge').textContent.trim() : '';
+            var name = row.dataset.name;
+            var li   = document.createElement('li');
+            li.className = 'lb-search-result';
+            li.innerHTML = '<span class="lb-search-result-name">' + name + '</span>' +
+                           '<span class="lb-search-result-pos">'  + pos  + '</span>';
+            li.addEventListener('click', function() {
+                input.value = '';
+                results.classList.remove('active');
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('lb-row--flash');
+                setTimeout(function() { row.classList.remove('lb-row--flash'); }, 1800);
+            });
+            results.appendChild(li);
+        });
+        results.classList.add('active');
+    }
+
+    input.addEventListener('input',  function() { showResults(input.value.trim()); });
+    input.addEventListener('focus',  function() { if (input.value.trim()) showResults(input.value.trim()); });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.lb-search-box')) results.classList.remove('active');
+    });
+})();
+
+{% if not tournament_over %}
 setTimeout(function() {
     sessionStorage.setItem('_lbReload', '1');
     location.reload();
 }, 60000);
+{% endif %}
 </script>
 {% endif %}
 {% endblock %}
