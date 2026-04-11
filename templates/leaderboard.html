@@ -66,7 +66,7 @@
                     {% if r1_payout_rows %}
                     <ul class="payout-list">
                         {% for row in r1_payout_rows %}
-                        <li><span>{{ row.place }} &mdash; {{ row.name }}</span><span><span class="payout-pct">({{ "%.4g" | format(row.amount / total_pot * 100) }}%)</span>${{ "{:,.2f}".format(row.amount) if row.amount != row.amount | int else "{:,}".format(row.amount | int) }}</span></li>
+                        <li><span>{{ row.place }} &mdash; {{ row.name }}</span><span><span class="payout-pct">({{ "%.2f" | format(row.amount / total_pot * 100) }}%)</span>${{ "{:,.2f}".format(row.amount) if row.amount != row.amount | int else "{:,}".format(row.amount | int) }}</span></li>
                         {% endfor %}
                     </ul>
                     {% else %}
@@ -87,7 +87,7 @@
                     {% if r2_payout_rows %}
                     <ul class="payout-list">
                         {% for row in r2_payout_rows %}
-                        <li><span>{{ row.place }} &mdash; {{ row.name }}</span><span><span class="payout-pct">({{ "%.4g" | format(row.amount / total_pot * 100) }}%)</span>${{ "{:,.2f}".format(row.amount) if row.amount != row.amount | int else "{:,}".format(row.amount | int) }}</span></li>
+                        <li><span>{{ row.place }} &mdash; {{ row.name }}</span><span><span class="payout-pct">({{ "%.2f" | format(row.amount / total_pot * 100) }}%)</span>${{ "{:,.2f}".format(row.amount) if row.amount != row.amount | int else "{:,}".format(row.amount | int) }}</span></li>
                         {% endfor %}
                     </ul>
                     {% else %}
