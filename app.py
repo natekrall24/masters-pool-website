@@ -189,10 +189,11 @@ def _compute_pool_standings():
     for p in mc_field:
         p["pos"] = "MC"
 
-    # Insert the projected cut divider if ESPN has that row.
-    # Split non-MC players into those making/missing the projected cut,
-    # then append any officially-cut players at the bottom.
-    if projected_cut is not None:
+    # Insert the projected cut divider during R2, or an MC banner after R2.
+    r2_in_progress = rounds_started["r2"] and not r2_complete
+
+    if projected_cut is not None and r2_in_progress:
+        # During R2: show projected cut divider splitting the field
         try:
             cut_val = 0 if projected_cut == "E" else int(projected_cut)
         except ValueError:
@@ -209,6 +210,13 @@ def _compute_pool_standings():
             )
         else:
             field_players = non_mc_field + mc_field
+    elif r2_complete and mc_field:
+        # After R2: show MC banner before the missed-cut players
+        field_players = (
+            non_mc_field
+            + [{"_is_mc_banner_row": True, "cut_str": projected_cut}]
+            + mc_field
+        )
     else:
         field_players = non_mc_field + mc_field
 
@@ -651,13 +659,15 @@ def lineups():
     else:
         entries = sorted(entries, key=lambda e: e["name"].lower())
 
-    # Count how many entries each player appears in, preserving config.py order
+    # Count how many entries each player appears in, preserving config.py order.
+    # Normalize names before counting so ESPN spellings match config.py spellings.
     counts = {}
     for entry in entries:
         for p in entry["players"]:
-            counts[p] = counts.get(p, 0) + 1
+            key = normalize_name(p)
+            counts[key] = counts.get(key, 0) + 1
     player_counts = sorted(
-        [{"name": p["name"], "salary": p["salary"], "count": counts.get(p["name"], 0)} for p in PLAYERS],
+        [{"name": p["name"], "salary": p["salary"], "count": counts.get(normalize_name(p["name"]), 0)} for p in PLAYERS],
         key=lambda x: (-x["count"], -x["salary"])
     )
 

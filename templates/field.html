@@ -72,6 +72,19 @@
                     {%- endif %}
                 </td>
             </tr>
+            {% elif p._is_mc_banner_row %}
+            <tr class="field-cut-row">
+                <td colspan="{{ col_count }}" class="field-cut-cell">
+                    The following players failed to make the cut
+                    {%- if p.cut_str %}
+                    at
+                    {%- if p.cut_str == "E" %} <span class="s-even">E</span>
+                    {%- elif p.cut_str.startswith("+") %} <span class="s-over">{{ p.cut_str }}</span>
+                    {%- else %} <span class="s-under">{{ p.cut_str }}</span>
+                    {%- endif %}
+                    {%- endif %}
+                </td>
+            </tr>
             {% else %}
             {% set is_mc = p.missed_cut %}
             <tr class="lb-row{% if is_mc %} field-row--mc{% endif %}" data-name="{{ p.name }}">
