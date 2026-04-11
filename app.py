@@ -93,6 +93,8 @@ def _compute_pool_standings():
         "r4": any(p["r4"] != 0 or p["r4_posted"] for p in non_mc),
     }
     started_round_keys = [r for r in ("r1", "r2", "r3", "r4") if rounds_started[r]]
+    # R2 is complete once the cut has been applied (any player officially missed cut)
+    r2_complete = any(p["missed_cut"] for p in player_scores)
 
     entries_raw = _get_entries_from_sheet()
     results = []
@@ -215,6 +217,7 @@ def _compute_pool_standings():
         "r1_standings": r1_standings,
         "r2_standings": r2_standings,
         "rounds_started": rounds_started,
+        "r2_complete": r2_complete,
         "field_players": field_players,
         "last_updated": datetime.now(zoneinfo.ZoneInfo("America/New_York")).strftime("%-I:%M %p ET"),
     }
@@ -365,7 +368,7 @@ def _round_payout_rows(lb, total_pot):
     """
     rs = lb["rounds_started"]
     r1 = _build_payout_rows(lb["r1_standings"], _ROUND_PCTS, total_pot) if rs["r2"] and lb["r1_standings"] else None
-    r2 = _build_payout_rows(lb["r2_standings"], _ROUND_PCTS, total_pot) if rs["r3"] and lb["r2_standings"] else None
+    r2 = _build_payout_rows(lb["r2_standings"], _ROUND_PCTS, total_pot) if lb.get("r2_complete") and lb["r2_standings"] else None
     return r1, r2
 
 
