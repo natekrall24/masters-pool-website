@@ -214,8 +214,8 @@
                     <td class="col-name">{{ entry.name }}</td>
                     <td class="col-round">{{ fmt(entry.r1, rounds_started.r1) }}</td>
                     <td class="col-round">{{ fmt(entry.r2, rounds_started.r2) }}</td>
-                    <td class="col-round">{{ fmt(entry.r3, rounds_started.r3) }}</td>
-                    <td class="col-round">{{ fmt(entry.r4, rounds_started.r4) }}</td>
+                    <td class="col-round">{{ fmt(entry.r3, rounds_started.r3 or entry.r3 != 0) }}</td>
+                    <td class="col-round">{{ fmt(entry.r4, rounds_started.r4 or entry.r4 != 0) }}</td>
                     <td class="col-total">{{ fmt(entry.display_total, entry.display_total is not none) }}</td>
                 </tr>
                 {% endfor %}
@@ -379,9 +379,15 @@ function openEntryModal(row) {
 
     // Compute display total for each golfer, then sort best score first
     var golfersWithTotal = entry.golfers.map(function(g) {
-        var displayTotal = startedKeys.length
-            ? startedKeys.reduce(function(s, k){ return s + g[k]; }, 0)
-            : null;
+        var displayTotal;
+        if (!startedKeys.length) {
+            displayTotal = null;
+        } else if (g.missed_cut) {
+            // MC players always carry the full penalty (r3=+5, r4=+5)
+            displayTotal = g.r1 + g.r2 + g.r3 + g.r4;
+        } else {
+            displayTotal = startedKeys.reduce(function(s, k){ return s + g[k]; }, 0);
+        }
         return Object.assign({}, g, { displayTotal: displayTotal });
     });
     golfersWithTotal.sort(function(a, b) {
@@ -411,25 +417,23 @@ function openEntryModal(row) {
             '<td class="emt-golfer">' + g.name + mc + thruText + '</td>' +
             '<td class="emt-score">' + fmtScore(g.r1, rs.r1) + '</td>' +
             '<td class="emt-score">' + fmtScore(g.r2, rs.r2) + '</td>' +
-            '<td class="emt-score">' + fmtScore(g.r3, rs.r3) + '</td>' +
-            '<td class="emt-score">' + fmtScore(g.r4, rs.r4) + '</td>' +
+            '<td class="emt-score">' + fmtScore(g.r3, rs.r3 || g.missed_cut) + '</td>' +
+            '<td class="emt-score">' + fmtScore(g.r4, rs.r4 || g.missed_cut) + '</td>' +
             '<td class="emt-score emt-total">' + fmtScore(g.displayTotal, g.displayTotal !== null) + '</td>';
         tbody.appendChild(tr);
     });
 
     // Totals row
-    var totals = {r1: entry.r1, r2: entry.r2, r3: entry.r3, r4: entry.r4};
-    var grandTotal = startedKeys.length
-        ? startedKeys.reduce(function(s, k){ return s + totals[k]; }, 0)
-        : null;
+    // Use display_total from server (already includes MC penalties for r3/r4)
+    var grandTotal = startedKeys.length ? entry.display_total : null;
     var tfoot = document.getElementById('modal-foot');
     tfoot.innerHTML =
         '<tr class="emt-totals-row">' +
         '<td class="emt-golfer">Total</td>' +
         '<td class="emt-score">' + fmtScore(entry.r1, rs.r1) + '</td>' +
         '<td class="emt-score">' + fmtScore(entry.r2, rs.r2) + '</td>' +
-        '<td class="emt-score">' + fmtScore(entry.r3, rs.r3) + '</td>' +
-        '<td class="emt-score">' + fmtScore(entry.r4, rs.r4) + '</td>' +
+        '<td class="emt-score">' + fmtScore(entry.r3, rs.r3 || entry.r3 !== 0) + '</td>' +
+        '<td class="emt-score">' + fmtScore(entry.r4, rs.r4 || entry.r4 !== 0) + '</td>' +
         '<td class="emt-score emt-total">' + fmtScore(grandTotal, grandTotal !== null) + '</td>' +
         '</tr>';
 

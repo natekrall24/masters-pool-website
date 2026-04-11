@@ -119,9 +119,11 @@ def _compute_pool_standings():
                 app.logger.warning("Player not found in ESPN data: %r", player_name)
                 golfers.append({"name": player_name, "r1": 0, "r2": 0, "r3": 0, "r4": 0, "missed_cut": False})
 
-        scores = {"r1": r1, "r2": r2, "r3": r3, "r4": r4}
         total = r1 + r2 + r3 + r4
-        display_total = sum(scores[r] for r in started_round_keys) if started_round_keys else None
+        # Use total directly: non-MC players have r3=r4=0 before those rounds start,
+        # so display_total equals the started-rounds sum for them. MC players always
+        # carry their +5 per missed round regardless of whether R3/R4 have started.
+        display_total = total if started_round_keys else None
         results.append({
             "name": entry["name"],
             "r1": r1,
