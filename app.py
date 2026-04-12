@@ -239,7 +239,28 @@ def get_cached_leaderboard():
         return _lb_cache["data"]
     if _lb_cache["data"] and now - _lb_cache["ts"] < CACHE_TTL:
         return _lb_cache["data"]
+
+    # Snapshot current positions before refreshing
+    prev_pos = {}
+    if _lb_cache["data"]:
+        for e in _lb_cache["data"].get("entries", []):
+            prev_pos[e["name"]] = int(e["pos"].lstrip("T"))
+
     data = _compute_pool_standings()
+
+    # Annotate each entry with whether they moved up, down, or stayed
+    for e in data.get("entries", []):
+        curr = int(e["pos"].lstrip("T"))
+        prev = prev_pos.get(e["name"])
+        if prev is None:
+            e["pos_change"] = ""
+        elif curr < prev:
+            e["pos_change"] = "up"
+        elif curr > prev:
+            e["pos_change"] = "down"
+        else:
+            e["pos_change"] = ""
+
     _lb_cache["data"] = data
     _lb_cache["ts"] = now
     return data

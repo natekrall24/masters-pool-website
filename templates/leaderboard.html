@@ -210,7 +210,7 @@
                     data-entry='{{ entry | tojson }}'
                     data-name="{{ entry.name }}"
                     onclick="openEntryModal(this)">
-                    <td class="col-pos"><span class="pos-badge{% if mc %} pos-badge--{{ mc }}{% elif is_last %} pos-badge--last{% endif %}">{{ entry.pos }}</span></td>
+                    <td class="col-pos"><span class="pos-badge{% if mc %} pos-badge--{{ mc }}{% elif is_last %} pos-badge--last{% endif %}">{{ entry.pos }}</span>{% if entry.pos_change == "up" %}<span class="pos-arrow pos-arrow--up">▲</span>{% elif entry.pos_change == "down" %}<span class="pos-arrow pos-arrow--down">▼</span>{% endif %}</td>
                     <td class="col-name">{{ entry.name }}</td>
                     <td class="col-round">{{ fmt(entry.r1, rounds_started.r1) }}</td>
                     <td class="col-round">{{ fmt(entry.r2, rounds_started.r2) }}</td>
@@ -346,6 +346,27 @@ function showTab(id) {
             window.scrollTo(0, parseInt(scrollY, 10));
         }
         sessionStorage.removeItem('_lbScrollY');
+
+        // Animate arrows: fade out previous, then pop in new
+        var prevArrows = {};
+        try { prevArrows = JSON.parse(sessionStorage.getItem('_lbArrows') || '{}'); } catch(e) {}
+        sessionStorage.removeItem('_lbArrows');
+        var FADE_MS = 350;
+        document.querySelectorAll('.lb-row[data-name]').forEach(function(row) {
+            var name = row.dataset.name;
+            var td = row.querySelector('td.col-pos');
+            if (!td) return;
+            var newArrow = td.querySelector('.pos-arrow');
+            var prevDir = prevArrows[name];
+            if (prevDir) {
+                var ghost = document.createElement('span');
+                ghost.className = 'pos-arrow pos-arrow--ghost pos-arrow--' + prevDir;
+                td.appendChild(ghost);
+            }
+            if (newArrow && prevDir) {
+                newArrow.style.animationDelay = FADE_MS + 'ms';
+            }
+        });
     }
     sessionStorage.removeItem('_lbTab');
 })();
@@ -562,6 +583,13 @@ setTimeout(function() {
     sessionStorage.setItem('_lbScrollY', window.scrollY);
     var rulesEl = document.querySelector('.rules-section');
     if (rulesEl) sessionStorage.setItem('_lbRulesOpen', rulesEl.open ? '1' : '0');
+    // Save current arrow states before reload
+    var arrowMap = {};
+    document.querySelectorAll('.pos-arrow').forEach(function(el) {
+        var row = el.closest('tr[data-name]');
+        if (row) arrowMap[row.dataset.name] = el.classList.contains('pos-arrow--up') ? 'up' : 'down';
+    });
+    sessionStorage.setItem('_lbArrows', JSON.stringify(arrowMap));
     sessionStorage.setItem('_lbReload', '1');
     location.reload();
 }, 60000);
