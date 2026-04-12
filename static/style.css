@@ -1676,6 +1676,12 @@ td.lu-score {
     margin: 0;
 }
 
+.results-champion-photo {
+    width: 150px;
+    height: 150px;
+    margin: 0.75rem auto 0.5rem;
+}
+
 .results-payouts {
     max-width: 680px;
     margin: 0 auto 1.75rem;

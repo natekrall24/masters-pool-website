@@ -129,6 +129,9 @@
 {% if tournament_over and payout_summary %}
 <div class="results-winner">
     <p class="results-winner-label">2026 Slot Masters Pool Champion</p>
+    <div class="champion-photo-wrap results-champion-photo">
+        <img src="{{ url_for('static', filename='2026_champion.png') }}" alt="{{ entries[0].name }}" class="champion-photo">
+    </div>
     <h3 class="results-winner-name">{{ entries[0].name }}</h3>
 </div>
 
