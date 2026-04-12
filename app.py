@@ -303,21 +303,22 @@ def _build_payout_rows(entries, pcts, total_pot, place_suffix=""):
 
 def _compute_payout_summary(overall, r1_standings, r2_standings, total_pot):
     """Build a structured payout summary for the results page."""
-    # Overall positions 1–5
-    overall_rows = _build_payout_rows(overall, [0.23, 0.14, 0.09, 0.05, 0.04, 0.03, 0.02, 0.01], total_pot, "Place")
+    # Overall positions 1–10 (must match payout structure in templates)
+    overall_pcts = [0.23, 0.14, 0.09, 0.06, 0.04, 0.03, 0.025, 0.02, 0.015, 0.01]
+    overall_rows = _build_payout_rows(overall, overall_pcts, total_pot, "Place")
 
     # Last place — find all entries tied at the bottom
     if overall:
         last_pos = overall[-1]["pos"]
         last_group = [e for e in overall if e["pos"] == last_pos]
-        last_amount = int(total_pot * 0.01 / len(last_group))
+        last_amount = round(total_pot * 0.01 / len(last_group), 2)
         last_label = "Last Place" if len(last_group) == 1 else "Last Place (Tied)"
         for e in last_group:
             overall_rows.append({"place": last_label, "name": e["name"], "amount": last_amount})
 
     sections = [{"section": "Overall", "entries": overall_rows}]
 
-    round_pcts = [0.08, 0.05, 0.03, 0.02, 0.01]
+    round_pcts = [0.075, 0.04, 0.025, 0.015, 0.01]
     for standings, label in [(r1_standings, "Round 1"), (r2_standings, "Round 2")]:
         if standings:
             sections.append({
