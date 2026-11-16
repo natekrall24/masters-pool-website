@@ -227,7 +227,10 @@ def _compute_pool_standings():
         "rounds_started": rounds_started,
         "r2_complete": r2_complete,
         "field_players": field_players,
-        "last_updated": datetime.now(zoneinfo.ZoneInfo("America/New_York")).strftime("%-I:%M %p ET"),
+        "last_updated": (
+            "April 12, 2026" if SITE_MODE == "tournament-over"
+            else datetime.now(zoneinfo.ZoneInfo("America/New_York")).strftime("%-I:%M %p ET")
+        ),
     }
 
 

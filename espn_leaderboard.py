@@ -35,6 +35,8 @@ Scoring rules (replicating the spreadsheet formulas):
              = 0                otherwise
 """
 
+import json
+import os
 import re
 import unicodedata
 import requests
@@ -50,6 +52,7 @@ _CHAR_SUBS = [("æ", "ae"), ("ø", "o"), ("ð", "d"), ("þ", "th")]
 # ESPN nickname → canonical pool-config name (both already normalized).
 _NAME_ALIASES: dict[str, str] = {
     "nico echavarria": "nicolas echavarria",
+    "johnny keefer": "john keefer",
 }
 
 
@@ -320,9 +323,30 @@ def parse_projected_cut(rows: list[list[str]]) -> str | None:
     return None
 
 
+FINAL_SNAPSHOT_PATH = os.path.join(os.path.dirname(__file__), "final_leaderboard.json")
+
+
+def load_final_snapshot() -> list[list[str]]:
+    """
+    Load the frozen final 2026 Masters leaderboard (same row format as
+    fetch_raw_rows). ESPN's /golf/leaderboard page moves on to the next
+    tournament once the Masters ends, so after the tournament we score
+    from this snapshot instead of scraping.
+    """
+    with open(FINAL_SNAPSHOT_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def get_player_scores() -> tuple[list[dict], str | None]:
-    """Fetch ESPN data and return (computed player scores, projected cut string)."""
-    rows = fetch_raw_rows()
+    """Return (computed player scores, projected cut string).
+
+    In tournament-over mode, scores come from the frozen final snapshot;
+    otherwise they're scraped live from ESPN.
+    """
+    if os.environ.get("SITE_MODE") == "tournament-over" and os.path.exists(FINAL_SNAPSHOT_PATH):
+        rows = load_final_snapshot()
+    else:
+        rows = fetch_raw_rows()
     return parse_player_scores(rows), parse_projected_cut(rows)
 
 
