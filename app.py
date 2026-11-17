@@ -543,7 +543,7 @@ def submit():
             "roster_builder.html",
             players=PLAYERS,
             salary_cap=50000,
-            errors=["There was a problem submitting your team. Please try again or contact sammymarks03@gmail.com."],
+            errors=["There was a problem submitting your team. Please try again or contact natekrall22@outlook.com."],
             form_name=name,
             form_email=email,
             selected_names=selected,
